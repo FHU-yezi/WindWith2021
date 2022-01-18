@@ -6,9 +6,7 @@ from data_getter import init as data_getter_init
 from log_service import AddViewLog
 from web_modules.join_queue import JoinQueue
 from web_modules.utils import GetUrl, SetFooter
-
-# from web_modules.view_summary import ViewSummary
-
+from web_modules.view_summary import ViewSummary
 
 data_getter_init()  # 初始化数据获取线程
 
@@ -51,4 +49,4 @@ def index():
     SetFooter(f"Version：{__version__} Made with PyWebIO and ♥")
 
 
-start_server([JoinQueue, index], port=8603)
+start_server([JoinQueue, ViewSummary, index], port=8603)

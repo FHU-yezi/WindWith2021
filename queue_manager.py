@@ -6,7 +6,9 @@ from yaml import load as yaml_load
 
 from db_config import UserQueue
 from exceptions import (QueueEmptyException, QueueFullException,
-                        UserAlreadyExistsException, UserBannedException)
+                        UserAlreadyExistsException, UserBannedException,
+                        UserDataDoesNotReadyException,
+                        UserDoesNotExistException)
 
 MAX_QUEUE_LENGTH = 100
 
@@ -33,7 +35,7 @@ def GetQueueLength() -> int:
     return queue_length
 
 
-def GetOneFromQueue() -> str:
+def GetOneToProcess() -> str:
     global queue_length
     if queue_length == 0:
         raise QueueEmptyException("队列已空")
@@ -45,8 +47,29 @@ def GetOneFromQueue() -> str:
     return user.user_url
 
 
-def DataFetchFinished(user_url: str) -> None:
-    user = UserQueue.select().where(UserQueue.user_url == user_url).get()
-    user.status = 3
-    user.finish_process_time = datetime.now()
-    user.save()
+def ProcessFinished(user_url: str) -> None:
+    try:
+        user = UserQueue.select().where(UserQueue.user_url == user_url).get()
+    except Exception:  # 用户不存在
+        raise UserDoesNotExistException(f"用户 {user_url} 不存在")
+    else:
+        user.status = 3
+        user.finish_process_time = datetime.now()
+        user.save()
+
+
+def GetOneToShowSummary(user_url: str) -> str:
+    try:
+        user = UserQueue.select().where(UserQueue.user_url == user_url).get()
+    except Exception:  # 用户不存在
+        raise UserDoesNotExistException(f"用户 {user_url} 不存在")
+    else:
+        if user.status in (1, 2):
+            raise UserDataDoesNotReadyException(f"用户 {user_url} 的数据未就绪")
+        elif user.status == 4:  # 已经查看过年终总结
+            return user.user_url
+        else:
+            user.status = 4
+            user.first_show_summary_time = datetime.now()
+            user.save()
+            return user.user_url

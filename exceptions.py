@@ -10,6 +10,12 @@ class UserAlreadyExistsException(Exception):
     pass
 
 
+class UserDoesNotExistException(Exception):
+    """用户不存在时抛出此错误
+    """
+    pass
+
+
 class UserBannedException(Exception):
     """用户被封禁时抛出此错误
     """
@@ -18,5 +24,11 @@ class UserBannedException(Exception):
 
 class QueueEmptyException(Exception):
     """队列已空时抛出此错误
+    """
+    pass
+
+
+class UserDataDoesNotReadyException(Exception):
+    """用户数据未就绪时抛出此错误
     """
     pass

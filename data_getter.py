@@ -12,7 +12,7 @@ from yaml import dump as yaml_dump
 
 from exceptions import QueueEmptyException
 from log_service import AddRunLog
-from queue_manager import DataFetchFinished, GetOneFromQueue
+from queue_manager import ProcessFinished, GetOneToProcess
 
 
 def GetUserArticleData(user_url: str) -> DataFrame:
@@ -36,7 +36,7 @@ def main():
 
     while True:
         try:
-            user_url = GetOneFromQueue()
+            user_url = GetOneToProcess()
         except QueueEmptyException:
             sleep(0.3)  # 队列为空，等待一段时间
             continue
@@ -48,10 +48,10 @@ def main():
         article_data = GetUserArticleData(user_url)
         article_data.to_csv(f"user_data/{user_slug}/article_data_{user_slug}.csv", index=False)
         basic_data = GetUserBasicData(user_url)
-        with open(f"user_data/{user_slug}/basic_data_{user_slug}.yaml", "w") as f:
+        with open(f"user_data/{user_slug}/basic_data_{user_slug}.yaml", "w", encoding="utf-8") as f:
             yaml_dump(basic_data, f, indent=4, allow_unicode=True)
 
-        DataFetchFinished(user_url)  # 如果数据获取完整，就将用户状态改为 3，表示已完成数据获取
+        ProcessFinished(user_url)  # 如果数据获取完整，就将用户状态改为 3，表示已完成数据获取
 
 
 def init():
