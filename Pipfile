@@ -1,0 +1,18 @@
+[[source]]
+url = "https://mirrors.aliyun.com/pypi/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+jieba = "==0.42.1"
+jianshuresearchtools = "==2.8.0"
+pywebio = "==1.5.2"
+pandas = "==1.3.5"
+wordcloud = "==1.8.1"
+peewee = "==3.14.8"
+pyyaml = "==5.4.1"
+
+[dev-packages]
+
+[requires]
+python_version = "3.8"
