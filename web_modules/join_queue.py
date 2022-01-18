@@ -20,7 +20,7 @@ def JoinQueueAction():
         return
 
     try:
-        AddToQueue(user_name)
+        AddToQueue(pin["user_url"])
     except QueueFullException:
         AddRunLog(2, f"用户 {pin['user_url']} 加入排队失败，因为队列已满")
         toast("队列已满，请稍后再试", color="warn")
