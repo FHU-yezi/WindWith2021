@@ -14,3 +14,9 @@ class UserBannedException(Exception):
     """用户被封禁时抛出此错误
     """
     pass
+
+
+class QueueEmptyException(Exception):
+    """队列已空时抛出此错误
+    """
+    pass

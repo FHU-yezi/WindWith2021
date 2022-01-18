@@ -6,7 +6,7 @@ from log_service import AddRunLog
 from web_modules.utils import SetFooter
 from JianshuResearchTools.user import GetUserName
 from JianshuResearchTools.exceptions import ResourceError, InputError
-# from queue_manager import AddToQueue
+from queue_manager import AddToQueue
 
 
 def JoinQueueAction():
@@ -20,8 +20,7 @@ def JoinQueueAction():
         return
 
     try:
-        # AddToQueue(user_name)
-        pass
+        AddToQueue(user_name)
     except QueueFullException:
         AddRunLog(2, f"用户 {pin['user_url']} 加入排队失败，因为队列已满")
         toast("队列已满，请稍后再试", color="warn")
