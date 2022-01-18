@@ -13,19 +13,19 @@ from pywebio.session import info
 """
 
 
-def AddRunLog(level:int, message: str):
+def AddRunLog(level: int, message: str):
     RunLog.create(time=datetime.now(), level=level, message=message)
 
 
-def AddViewLog(unique_code: str, session_info: info):
+def AddViewLog(session_info: info, user_url: str = None):
     try:
         ViewLog.create(time=datetime.now(),
-                       unique_code=unique_code,
-                       is_mobile=session_info.is_mobile,
-                       is_tablet=session_info.is_tablet,
-                       is_pc=session_info.is_pc,
-                       browser_name=session_info.browser.family,
-                       os_name=session_info.os.family,
+                       user_url=user_url,
+                       is_mobile=session_info.user_agent.is_mobile,
+                       is_tablet=session_info.user_agent.is_tablet,
+                       is_pc=session_info.user_agent.is_pc,
+                       browser_name=session_info.user_agent.browser.family,
+                       os_name=session_info.user_agent.os.family,
                        language=session_info.user_language,
                        ip=session_info.user_ip)
     except DatabaseError:

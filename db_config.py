@@ -15,7 +15,7 @@ class RunLog(Model):
 class ViewLog(Model):
     id = IntegerField(primary_key=True)
     time = DateTimeField()
-    unique_code = CharField()
+    user_url = CharField(null=True)  # 可以为空
     is_mobile = BooleanField()
     is_tablet = BooleanField()
     is_pc = BooleanField()
