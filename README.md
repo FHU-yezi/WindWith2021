@@ -7,5 +7,6 @@
 - Web 服务：PyWebIO
 - 数据获取：JianshuResearchTools
 - 数据处理：Pandas
+- 数据库 ORM：Peewee
 - 分词：Jieba
 - 词云图：Wordcloud
