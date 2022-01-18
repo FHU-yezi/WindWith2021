@@ -1,12 +1,14 @@
-from pywebio.output import put_markdown, put_button, toast, put_text, use_scope
-from pywebio.pin import put_input, pin
-from pywebio.input import TEXT
-from exceptions import QueueFullException, UserAlreadyExistsException, UserBannedException
-from log_service import AddRunLog
-from web_modules.utils import SetFooter
+from exceptions import (QueueFullException, UserAlreadyExistsException,
+                        UserBannedException)
+from JianshuResearchTools.exceptions import InputError, ResourceError
 from JianshuResearchTools.user import GetUserName
-from JianshuResearchTools.exceptions import ResourceError, InputError
+from log_service import AddRunLog
+from pywebio.input import TEXT
+from pywebio.output import put_button, put_markdown, put_text, toast, use_scope
+from pywebio.pin import pin, put_input
 from queue_manager import AddToQueue
+
+from .utils import GetLocalStorage, SetFooter, SetLocalStorage
 
 
 def JoinQueueAction():
@@ -45,6 +47,7 @@ def JoinQueueAction():
             put_button("提交", color="success", disabled=True, onclick=JoinQueueAction)  # 禁用按钮，防止用户重试
     else:
         AddRunLog(3, f"用户 {pin['user_url']} 加入排队成功")
+        SetLocalStorage("user_url", pin["user_url"])
         toast("加入排队成功", color="success")
         with use_scope("submit_button", clear=True):
             put_button("提交", color="success", disabled=True, onclick=JoinQueueAction)  # 禁用按钮，防止用户重复点击
@@ -56,7 +59,8 @@ def JoinQueue():
     """
 
     put_markdown("# 加入排队 ——「风语」")
-    put_input("user_url", type=TEXT, label="您的简书用户主页链接", placeholder="https://www.jianshu.com/u/xxxxxx")
+    put_input("user_url", type=TEXT, label="您的简书用户主页链接",
+              value=GetLocalStorage("user_url"), placeholder="https://www.jianshu.com/u/xxxxxx")
     with use_scope("submit_button", clear=True):
         put_button("提交", color="success", onclick=JoinQueueAction)
 

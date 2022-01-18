@@ -22,7 +22,7 @@ def GetUrl() -> str:
     return eval_js("window.location.href")
 
 
-def SetlocalStorage(key: str, value: str) -> None:
+def SetLocalStorage(key: str, value: str) -> None:
     """
     设置 localStorage
     """
