@@ -1,9 +1,12 @@
-from db_config import UserQueue
 from datetime import datetime
-from yaml import load as yaml_load
-from yaml import SafeLoader
+
 from peewee import DatabaseError
-from exceptions import QueueFullException, UserAlreadyExistsException, UserBannedException, QueueEmptyException
+from yaml import SafeLoader
+from yaml import load as yaml_load
+
+from db_config import UserQueue
+from exceptions import (QueueEmptyException, QueueFullException,
+                        UserAlreadyExistsException, UserBannedException)
 
 MAX_QUEUE_LENGTH = 100
 
@@ -30,13 +33,20 @@ def GetQueueLength() -> int:
     return queue_length
 
 
-def GetOneFromQueue() -> UserQueue:
+def GetOneFromQueue() -> str:
     global queue_length
     if queue_length == 0:
         raise QueueEmptyException("队列已空")
-    user_queue = UserQueue.select().where(UserQueue.status == 1).order_by(UserQueue.add_time).get()
-    user_queue.status = 2
-    user_queue.start_process_time = datetime.now()
-    user_queue.save()
+    user = UserQueue.select().where(UserQueue.status == 1).order_by(UserQueue.add_time).get()
+    user.status = 2
+    user.start_process_time = datetime.now()
+    user.save()
     queue_length -= 1
-    return user_queue
+    return user.user_url
+
+
+def DataFetchFinished(user_url: str) -> None:
+    user = UserQueue.select().where(UserQueue.user_url == user_url).get()
+    user.status = 3
+    user.finish_process_time = datetime.now()
+    user.save()

@@ -2,12 +2,15 @@ from pywebio import start_server
 from pywebio.output import put_link, put_markdown
 from pywebio.session import info as session_info
 
+from data_getter import init as data_getter_init
 from log_service import AddViewLog
 from web_modules.join_queue import JoinQueue
 from web_modules.utils import GetUrl, SetFooter
 
 # from web_modules.view_summary import ViewSummary
 
+
+data_getter_init()  # 初始化数据获取线程
 
 __version__ = "0.1.0"
 
