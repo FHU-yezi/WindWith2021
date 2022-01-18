@@ -4,15 +4,18 @@ from threading import Thread
 from time import sleep
 from typing import Dict
 
-from JianshuResearchTools.convert import UserUrlToUserSlug
+from JianshuResearchTools.article import GetArticleWordage
+from JianshuResearchTools.convert import (ArticleSlugToArticleUrl,
+                                          UserUrlToUserSlug)
 from JianshuResearchTools.user import (GetUserAllArticlesInfo,
-                                       GetUserAllBasicData)
+                                       GetUserAllBasicData,
+                                       GetUserArticlesCount)
 from pandas import DataFrame
 from yaml import dump as yaml_dump
 
 from exceptions import QueueEmptyException
 from log_service import AddRunLog
-from queue_manager import ProcessFinished, GetOneToProcess
+from queue_manager import GetOneToProcess, ProcessFinished
 
 
 def GetUserArticleData(user_url: str) -> DataFrame:
@@ -20,6 +23,7 @@ def GetUserArticleData(user_url: str) -> DataFrame:
     for part in GetUserAllArticlesInfo(user_url, count=50):  # 增加单次请求量，提高性能
         for item in part:
             if item["release_time"].replace(tzinfo=None) >= datetime(2021, 1, 1, 0, 0, 0):
+                item["wordage"] = GetArticleWordage(ArticleSlugToArticleUrl(item["aslug"]))
                 result.append(item)
         if part[-1]["release_time"].replace(tzinfo=None) >= datetime(2021, 1, 1, 0, 0, 0):
             break  # 如果某一项的时间早于 2021 年，则已经采集了所有 2021 年的文章
@@ -27,8 +31,32 @@ def GetUserArticleData(user_url: str) -> DataFrame:
 
 
 def GetUserBasicData(user_url: str) -> Dict:
-    return GetUserAllBasicData(user_url)
-
+    # 处理 JRT 的数据错误
+    result = {}
+    data = GetUserAllBasicData(user_url)
+    result["id"] = data["articles_count"]["id"]
+    result["slug"] = data["articles_count"]["slug"]
+    result["url"] = data["url"]
+    result["name"] = data["name"]
+    result["gender"] = {0: "未知", 1: "男", 2: "女"}[data["gender"]]
+    result["avatar_url"] = data["articles_count"]["avatar"]
+    result["background_image_url"] = data["articles_count"]["background_image"]
+    result["FP_count"] = round(data["FP_count"], 2)
+    result["FTN_count"] = round(data["FTN_count"], 2)
+    result["FP / FTN"] = round(result["FP_count"] / result["FTN_count"], 2)
+    result["assets_count"] = round(data["assets_count"], 2)
+    result["followers_count"] = data["followers_count"]
+    result["fans_count"] = data["fans_count"]
+    result["likes_count"] = data["likes_count"]
+    result["wordage"] = data["wordage"]
+    result["articles_count"] = GetUserArticlesCount(user_url)
+    result["introduction_text"] = data["introduction_text"]
+    result["badges_list"] = data["badges_list"]
+    result["last_update_time"] = data["last_update_time"]
+    result["next_anniversary_day"] = data["next_anniversary_day"]
+    result["vip_type"] = data["vip_info"]["vip_type"]
+    result["vip_expire_date"] = data["vip_info"]["expire_date"]
+    return result
 
 def main():
     if not path.exists("user_data"):

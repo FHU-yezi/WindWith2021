@@ -31,7 +31,7 @@ def index():
     AddViewLog(session_info)
 
     put_markdown("""
-    # 加入排队
+    # 排队
 
     **为什么要排队？**
 
@@ -40,7 +40,7 @@ def index():
     一般情况下，提交排队申请五分钟后就可以查看到年终总结。
     """)
 
-    put_link("加入排队", url=f"{GetUrl()}?app=JoinQueue")
+    put_link("登记排队", url=f"{GetUrl()}?app=JoinQueue")
 
     put_markdown("# 查看年终总结")
 
