@@ -38,7 +38,7 @@ def GetUserBasicData(user_url: str) -> Dict:
     result["slug"] = data["articles_count"]["slug"]
     result["url"] = data["url"]
     result["name"] = data["name"]
-    result["gender"] = {0: "未知", 1: "男", 2: "女"}[data["gender"]]
+    result["gender"] = {0: "未知", 1: "男", 2: "女", 3: "未知"}[data["gender"]]
     result["avatar_url"] = data["articles_count"]["avatar"]
     result["background_image_url"] = data["articles_count"]["background_image"]
     result["FP_count"] = round(data["FP_count"], 2)
@@ -55,8 +55,9 @@ def GetUserBasicData(user_url: str) -> Dict:
     result["last_update_time"] = data["last_update_time"]
     result["next_anniversary_day"] = data["next_anniversary_day"]
     result["vip_type"] = data["vip_info"]["vip_type"]
-    result["vip_expire_date"] = data["vip_info"]["expire_date"]
+    result["vip_expire_time"] = data["vip_info"]["expire_date"]
     return result
+
 
 def main():
     if not path.exists("user_data"):

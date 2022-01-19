@@ -95,9 +95,8 @@ def ShowSummary(basic_data: Dict, articles_data: DataFrame):
     return
 
 
-def GetAllData(user_url: str = None) -> None:
-    if not user_url:
-        user_url = pin["user_url"]  # 从输入框中获取 user_url
+def GetAllData() -> None:
+    user_url = pin["user_url"]  # 从输入框中获取 user_url
     if not user_url:  # 输入框为空
         return
 
@@ -118,7 +117,10 @@ def GetAllData(user_url: str = None) -> None:
         return
     except UserDataDoesNotReadyException:
         toast("您的数据还未获取完成，请稍后再试", color="warn")
-        put_text(f"尊敬的简友 {user_name}，我们正在努力获取您的数据，请稍后再试。")
+        with use_scope("data_input", clear=True):
+            put_input("user_url", type=TEXT, value=user_url, label="您的简书用户主页链接")
+            put_button("提交", color="success", onclick=GetAllData)
+            put_text(f"尊敬的简友 {user_name}，我们正在努力获取您的数据，请稍后再试。")
         return
     else:
         user_slug = UserUrlToUserSlug(user_url)
@@ -139,10 +141,8 @@ def ViewSummary():
     """我的简书 2021 年终总结 ——「风语」
     """
     user_url = GetLocalStorage("user_url")
-    SetFooter("Made with PyWebIO and ♥")
     with use_scope("data_input", clear=True):
-        if not user_url:
-            put_input("user_url", type=TEXT, label="您的简书用户主页链接")
-            put_button("提交", color="success", onclick=GetAllData)
-        else:
-            GetAllData(user_url)
+        put_input("user_url", type=TEXT, value=user_url, label="您的简书用户主页链接")
+        put_button("提交", color="success", onclick=GetAllData)
+
+    SetFooter("Made with PyWebIO and ♥")
