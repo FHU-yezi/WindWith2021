@@ -10,7 +10,7 @@ from web_modules.view_summary import ViewSummary
 
 data_getter_init()  # 初始化数据获取线程
 
-__version__ = "0.1.0"
+__version__ = "0.1.1"
 
 
 def index():
