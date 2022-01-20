@@ -22,16 +22,47 @@ def ShowSummary(basic_data: Dict, articles_data: DataFrame):
         put_text("简书，又陪伴你走过了一年。")
         put_image(basic_data["avatar_url"], width="100", height="100")
         put_text(f"{basic_data['name']}，欢迎进入，你的简书 2021 年度总结。")
-        put_text("（↓点击下方按钮展开↓）")
+        put_text("（↓点击下方按钮继续↓）")
         put_text("\n")
+
     yield None
+
     with use_scope("output"):
         put_text(f"时至今日，你已经在简书写下了{basic_data['articles_count']}篇文章，"
                  f"一共{round(basic_data['wordage'] / 10000, 1)}万字。")
-        put_text(f"这些文字吸引了{basic_data['fans_count']}人的关注，还有{basic_data['likes_count']}个点赞。")
-        put_text("创作的路上，你点亮的星火，为万千读者铺平了前路。")
+        if basic_data["wordage"] == 0:
+            put_text("不妨去写写您的所思所想？")
+        elif 0 < basic_data["wordage"] < 30000:
+            put_text("继续加油创作哦，总会有人注意到你的光芒。")
+        elif 30000 < basic_data["wordage"] < 100000:
+            put_text("初出茅庐，你是否是未来的诸葛亮呢？")
+        elif 100000 < basic_data["wordage"] < 300000:
+            put_text("已经是一名勤于思考和创作的简友了，期待你成为顶流哦~")
+        elif 300000 < basic_data["wordage"] < 1000000:
+            put_text("创作你的创作，你把简书的 Slogan 践行到了极致。")
+        elif basic_data["wordage"] >= 1000000:
+            put_text("已经是社区中数一数二的存在了哦，让高质量的内容成为你的代名词吧。")
         put_text("\n")
+
+        put_text(f"这些文字吸引了{basic_data['fans_count']}个粉丝，还有{basic_data['likes_count']}次点赞。")
+        if basic_data["likes_count"] == 0:
+            put_text("点赞？拿来吧你！")
+        elif 0 < basic_data["likes_count"] < 100:
+            put_text("无人问津？不，是未来无限！")
+        elif 100 < basic_data["likes_count"] < 500:
+            put_text("小有起色，爆发期即将到来！")
+        elif 500 < basic_data["likes_count"] < 2000:
+            put_text("已经有自己的忠实粉丝了哦，保持你的热情，继续加油！")
+        elif 2000 < basic_data["likes_count"] < 5000:
+            put_text("坚持写作，你会成为自己的忠实粉丝。")
+        elif 5000 < basic_data["likes_count"] < 30000:
+            put_text("天啊，这么高的关注度，你是靠内容还是互动得到的？")
+        elif basic_data["likes_count"] > 30000:
+            put_text("你写下的文字，为万千读者点亮了沿途的星光。")
+        put_text("\n")
+
     yield None
+
     with use_scope("output"):
         put_text(f"现在，你拥有{basic_data['assets_count']}资产，钻贝比为{basic_data['FP / FTN']}，"
                  f"看起来你对资产系统的了解不错哦。")
