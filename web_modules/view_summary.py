@@ -1,21 +1,23 @@
 from typing import Dict
 
-from httpx import put
-
 from exceptions import UserDataDoesNotReadyException, UserDoesNotExistException
 from JianshuResearchTools.convert import UserUrlToUserSlug
 from JianshuResearchTools.exceptions import InputError, ResourceError
 from JianshuResearchTools.user import GetUserName
 from pandas import DataFrame, read_csv
 from pywebio.input import TEXT
-from pywebio.output import (clear, put_button, put_image, put_link, put_text,
-                            toast, use_scope)
+from pywebio.output import (clear, put_button, put_image, put_link, put_table,
+                            put_text, toast, use_scope)
 from pywebio.pin import pin, put_input
 from queue_manager import GetOneToShowSummary
 from yaml import SafeLoader
 from yaml import load as yaml_load
 
 from .utils import GetLocalStorage, GetUrl, SetFooter, SetLocalStorage
+
+
+with open("badge_to_type.yaml", "r", encoding="utf-8") as f:
+    BADGE_TO_TYPE = yaml_load(f, SafeLoader)  # 初始化徽章类型映射
 
 
 def ShowSummary(basic_data: Dict, articles_data: DataFrame):
@@ -122,9 +124,9 @@ def ShowSummary(basic_data: Dict, articles_data: DataFrame):
     yield None
     with use_scope("output"):
         if basic_data['badges_list']:
-            put_text(f"你有这些徽章哦：{'   '.join(basic_data['badges_list'])}")
+            put_table([[x, BADGE_TO_TYPE.get(x, "未知")] for x in basic_data["badges_list"]], ["徽章名称", "分类"])
         else:
-            put_text("什么？你还没有徽章？为啥不好好写文申请个创作者，或者去做岛主？")
+            put_text("什么？你还没有徽章？为何不多写点文章申请个创作者，或者去做岛主？")
             put_text("搞点东西装饰一下你的个人主页，何乐而不为呢？")
         put_text("\n")
     yield None
