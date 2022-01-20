@@ -92,7 +92,7 @@ def ShowSummary(basic_data: Dict, articles_data: DataFrame):
         put_text("年终总结，完。")
         put_text("2022，启航！")
     clear("continue_button_area")  # 移除继续按钮
-    return
+    exit()
 
 
 def GetAllData() -> None:
