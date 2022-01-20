@@ -1,5 +1,7 @@
 from typing import Dict
 
+from httpx import put
+
 from exceptions import UserDataDoesNotReadyException, UserDoesNotExistException
 from JianshuResearchTools.convert import UserUrlToUserSlug
 from JianshuResearchTools.exceptions import InputError, ResourceError
@@ -64,10 +66,44 @@ def ShowSummary(basic_data: Dict, articles_data: DataFrame):
     yield None
 
     with use_scope("output"):
-        put_text(f"现在，你拥有{basic_data['assets_count']}资产，钻贝比为{basic_data['FP / FTN']}，"
-                 f"看起来你对资产系统的了解不错哦。")
-        put_text(f"简书钻：{basic_data['FP_count']}；简书贝：{basic_data['FTN_count']}。")
+        put_text(f"你拥有{basic_data['assets_count']}资产，其中{basic_data['FP_count']}简书钻，{basic_data['FTN_count']}简书贝。")
+        if basic_data["assets_count"] < 5:
+            put_text("难道你还不知道这都是些什么东西？去搜索一下吧！")
+        elif 5 < basic_data["assets_count"] < 100:
+            put_text("悄悄告诉你，写有深度的文章会提高收益哦！")
+        elif 100 < basic_data["assets_count"] < 500:
+            put_text("其实不必为资产发愁，毕竟简书是创作平台不是？")
+        elif 500 < basic_data["assets_count"] < 1000:
+            put_text("多与简友们互动会提高收益哦，简书会员也可以了解一下。")
+        elif 1000 < basic_data["assets_count"] < 5000:
+            put_text("这个资产量，不经常互动岂不是让收益白白溜走了？")
+        elif 5000 < basic_data["assets_count"] < 30000:
+            put_text("wow，好多钻贝啊，羡慕，资产管理经验分享一下可好？")
+        elif 30000 < basic_data["assets_count"] < 100000:
+            put_text("保持在社区的活跃、多写有深度的文章，是资产稳步增长的秘诀。")
+        elif basic_data["assets_count"] > 100000:
+            put_text("不管你是靠写文章还是使用钞能力，这个资产量绝对属于顶尖水准。")
         put_text("\n")
+
+        put_text(f"你的钻贝比为{basic_data['FP / FTN']}。")
+        try:
+            FP_percent = basic_data["FP_count"] / basic_data["assets_count"]
+        except ZeroDivisionError:  # 没有资产导致除数为零
+            FP_percent = 0
+        if FP_percent == 0:
+            put_text("你没有钻贝我怎么算？")
+        elif 0 < FP_percent < 0.2:
+            put_text("悄悄告诉你，贝转钻可以提高收益哦！")
+        elif 0.2 < FP_percent < 0.4:
+            put_text("贝这么多，一定是留着打赏自己喜欢的文章吧？")
+        elif 0.4 < FP_percent < 0.6:
+            put_text("钻贝均衡，不失为一种值得肯定的策略。")
+        elif 0.6 < FP_percent < 0.8:
+            put_text("靠简书钻提升权重，会员的加成卡也可以了解一下哦。")
+        elif 0.8 < FP_percent <= 1:
+            put_text("来点贝打赏给相中的文章怎么样？")
+        put_text("\n")
+
     yield None
     with use_scope("output"):
         put_text(f"今年，你写下了{articles_data['aslug'].count()}篇文章，{round(articles_data['wordage'].sum() / 10000, 1)}万字。")
