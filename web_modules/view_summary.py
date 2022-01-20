@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import Dict
 
 from exceptions import UserDataDoesNotReadyException, UserDoesNotExistException
@@ -111,7 +112,7 @@ def ShowSummary(basic_data: Dict, articles_data: DataFrame):
         put_text(f"今年，你写下了{articles_data['aslug'].count()}篇文章，{round(articles_data['wordage'].sum() / 10000, 1)}万字。")
         put_text(f"这一年，你写的文章，占总文章数的{round(basic_data['articles_count'] / articles_data['aslug'].count(), 2)}")
         put_text(f"{articles_data['likes_count'].sum()}个点赞，是你今年的成果，占你总收获的{round(articles_data['likes_count'].sum() / basic_data['likes_count'], 4) * 100}%。")
-        put_text(f"你的最近一次创作在{basic_data['last_update_time']}，还记得当时写了什么吗？")
+        put_text(f"你的最近一次创作在{datetime.fromisoformat(list(articles_data[articles_data['is_top'] == False]['release_time'])[0]).replace(tzinfo=None)}，还记得当时写了什么吗？")
         put_text("\n")
     yield None
     with use_scope("output"):
@@ -136,7 +137,7 @@ def ShowSummary(basic_data: Dict, articles_data: DataFrame):
         put_text("\n")
     yield None
     with use_scope("output"):
-        put_text(f"在大家面前，你是{basic_data['name']}，而在简书的数据库中，你的代号是{basic_data['id']}。")
+        put_text(f"在大家面前，你的名字是{basic_data['name']}，而在简书的数据库中，你的代号是{basic_data['id']}。")
         put_text("技术，无限可能，正如你面前的这份年终总结一样。")
         put_text("虽然它在背后，但你的每一份创作体验，都少不了万千技术工作者的默默付出。")
         put_text("\n")
