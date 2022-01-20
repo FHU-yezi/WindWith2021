@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import Dict
 
 from exceptions import UserDataDoesNotReadyException, UserDoesNotExistException
@@ -6,8 +7,8 @@ from JianshuResearchTools.exceptions import InputError, ResourceError
 from JianshuResearchTools.user import GetUserName
 from pandas import DataFrame, read_csv
 from pywebio.input import TEXT
-from pywebio.output import (clear, put_button, put_image, put_link, put_text,
-                            toast, use_scope)
+from pywebio.output import (clear, put_button, put_image, put_link, put_table,
+                            put_text, toast, use_scope)
 from pywebio.pin import pin, put_input
 from queue_manager import GetOneToShowSummary
 from yaml import SafeLoader
@@ -16,33 +17,102 @@ from yaml import load as yaml_load
 from .utils import GetLocalStorage, GetUrl, SetFooter, SetLocalStorage
 
 
+with open("badge_to_type.yaml", "r", encoding="utf-8") as f:
+    BADGE_TO_TYPE = yaml_load(f, SafeLoader)  # 初始化徽章类型映射
+
+
 def ShowSummary(basic_data: Dict, articles_data: DataFrame):
     with use_scope("output"):
         put_text("四季更替，星河流转，2021 是一个充满生机与挑战的年份。")
         put_text("简书，又陪伴你走过了一年。")
         put_image(basic_data["avatar_url"], width="100", height="100")
         put_text(f"{basic_data['name']}，欢迎进入，你的简书 2021 年度总结。")
-        put_text("（↓点击下方按钮展开↓）")
+        put_text("（↓点击下方按钮继续↓）")
         put_text("\n")
+
     yield None
+
     with use_scope("output"):
         put_text(f"时至今日，你已经在简书写下了{basic_data['articles_count']}篇文章，"
                  f"一共{round(basic_data['wordage'] / 10000, 1)}万字。")
-        put_text(f"这些文字吸引了{basic_data['fans_count']}人的关注，还有{basic_data['likes_count']}个点赞。")
-        put_text("创作的路上，你点亮的星火，为万千读者铺平了前路。")
+        if basic_data["wordage"] == 0:
+            put_text("不妨去写写您的所思所想？")
+        elif 0 < basic_data["wordage"] < 30000:
+            put_text("继续加油创作哦，总会有人注意到你的光芒。")
+        elif 30000 < basic_data["wordage"] < 100000:
+            put_text("初出茅庐，你是否是未来的诸葛亮呢？")
+        elif 100000 < basic_data["wordage"] < 300000:
+            put_text("已经是一名勤于思考和创作的简友了，期待你成为顶流哦~")
+        elif 300000 < basic_data["wordage"] < 1000000:
+            put_text("创作你的创作，你把简书的 Slogan 践行到了极致。")
+        elif basic_data["wordage"] >= 1000000:
+            put_text("已经是社区中数一数二的存在了哦，让高质量的内容成为你的代名词吧。")
         put_text("\n")
+
+        put_text(f"这些文字吸引了{basic_data['fans_count']}个粉丝，还有{basic_data['likes_count']}次点赞。")
+        if basic_data["likes_count"] == 0:
+            put_text("点赞？拿来吧你！")
+        elif 0 < basic_data["likes_count"] < 100:
+            put_text("无人问津？不，是未来无限！")
+        elif 100 < basic_data["likes_count"] < 500:
+            put_text("小有起色，爆发期即将到来！")
+        elif 500 < basic_data["likes_count"] < 2000:
+            put_text("已经有自己的忠实粉丝了哦，保持你的热情，继续加油！")
+        elif 2000 < basic_data["likes_count"] < 5000:
+            put_text("坚持写作，你会成为自己的忠实粉丝。")
+        elif 5000 < basic_data["likes_count"] < 30000:
+            put_text("天啊，这么高的关注度，你是靠内容还是互动得到的？")
+        elif basic_data["likes_count"] > 30000:
+            put_text("你写下的文字，为万千读者点亮了沿途的星光。")
+        put_text("\n")
+
     yield None
+
     with use_scope("output"):
-        put_text(f"现在，你拥有{basic_data['assets_count']}资产，钻贝比为{basic_data['FP / FTN']}，"
-                 f"看起来你对资产系统的了解不错哦。")
-        put_text(f"简书钻：{basic_data['FP_count']}；简书贝：{basic_data['FTN_count']}。")
+        put_text(f"你拥有{basic_data['assets_count']}资产，其中{basic_data['FP_count']}简书钻，{basic_data['FTN_count']}简书贝。")
+        if basic_data["assets_count"] < 5:
+            put_text("难道你还不知道这都是些什么东西？去搜索一下吧！")
+        elif 5 < basic_data["assets_count"] < 100:
+            put_text("悄悄告诉你，写有深度的文章会提高收益哦！")
+        elif 100 < basic_data["assets_count"] < 500:
+            put_text("其实不必为资产发愁，毕竟简书是创作平台不是？")
+        elif 500 < basic_data["assets_count"] < 1000:
+            put_text("多与简友们互动会提高收益哦，简书会员也可以了解一下。")
+        elif 1000 < basic_data["assets_count"] < 5000:
+            put_text("这个资产量，不经常互动岂不是让收益白白溜走了？")
+        elif 5000 < basic_data["assets_count"] < 30000:
+            put_text("wow，好多钻贝啊，羡慕，资产管理经验分享一下可好？")
+        elif 30000 < basic_data["assets_count"] < 100000:
+            put_text("保持在社区的活跃、多写有深度的文章，是资产稳步增长的秘诀。")
+        elif basic_data["assets_count"] > 100000:
+            put_text("不管你是靠写文章还是使用钞能力，这个资产量绝对属于顶尖水准。")
         put_text("\n")
+
+        put_text(f"你的钻贝比为{basic_data['FP / FTN']}。")
+        try:
+            FP_percent = basic_data["FP_count"] / basic_data["assets_count"]
+        except ZeroDivisionError:  # 没有资产导致除数为零
+            FP_percent = 0
+        if FP_percent == 0:
+            put_text("你没有钻贝我怎么算？")
+        elif 0 < FP_percent < 0.2:
+            put_text("悄悄告诉你，贝转钻可以提高收益哦！")
+        elif 0.2 < FP_percent < 0.4:
+            put_text("贝这么多，一定是留着打赏自己喜欢的文章吧？")
+        elif 0.4 < FP_percent < 0.6:
+            put_text("钻贝均衡，不失为一种值得肯定的策略。")
+        elif 0.6 < FP_percent < 0.8:
+            put_text("靠简书钻提升权重，会员的加成卡也可以了解一下哦。")
+        elif 0.8 < FP_percent <= 1:
+            put_text("来点贝打赏给相中的文章怎么样？")
+        put_text("\n")
+
     yield None
     with use_scope("output"):
         put_text(f"今年，你写下了{articles_data['aslug'].count()}篇文章，{round(articles_data['wordage'].sum() / 10000, 1)}万字。")
         put_text(f"这一年，你写的文章，占总文章数的{round(basic_data['articles_count'] / articles_data['aslug'].count(), 2)}")
         put_text(f"{articles_data['likes_count'].sum()}个点赞，是你今年的成果，占你总收获的{round(articles_data['likes_count'].sum() / basic_data['likes_count'], 4) * 100}%。")
-        put_text(f"你的最近一次创作在{basic_data['last_update_time']}，还记得当时写了什么吗？")
+        put_text(f"你的最近一次创作在{datetime.fromisoformat(list(articles_data[articles_data['is_top'] == False]['release_time'])[0]).replace(tzinfo=None)}，还记得当时写了什么吗？")
         put_text("\n")
     yield None
     with use_scope("output"):
@@ -55,9 +125,9 @@ def ShowSummary(basic_data: Dict, articles_data: DataFrame):
     yield None
     with use_scope("output"):
         if basic_data['badges_list']:
-            put_text(f"你有这些徽章哦：{'   '.join(basic_data['badges_list'])}")
+            put_table([[x, BADGE_TO_TYPE.get(x, "未知")] for x in basic_data["badges_list"]], ["徽章名称", "分类"])
         else:
-            put_text("什么？你还没有徽章？为啥不好好写文申请个创作者，或者去做岛主？")
+            put_text("什么？你还没有徽章？为何不多写点文章申请个创作者，或者去做岛主？")
             put_text("搞点东西装饰一下你的个人主页，何乐而不为呢？")
         put_text("\n")
     yield None
@@ -67,7 +137,7 @@ def ShowSummary(basic_data: Dict, articles_data: DataFrame):
         put_text("\n")
     yield None
     with use_scope("output"):
-        put_text(f"在大家面前，你是{basic_data['name']}，而在简书的数据库中，你的代号是{basic_data['id']}。")
+        put_text(f"在大家面前，你的名字是{basic_data['name']}，而在简书的数据库中，你的代号是{basic_data['id']}。")
         put_text("技术，无限可能，正如你面前的这份年终总结一样。")
         put_text("虽然它在背后，但你的每一份创作体验，都少不了万千技术工作者的默默付出。")
         put_text("\n")
@@ -92,7 +162,7 @@ def ShowSummary(basic_data: Dict, articles_data: DataFrame):
         put_text("年终总结，完。")
         put_text("2022，启航！")
     clear("continue_button_area")  # 移除继续按钮
-    return
+    exit()
 
 
 def GetAllData() -> None:

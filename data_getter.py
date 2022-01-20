@@ -52,7 +52,8 @@ def GetUserBasicData(user_url: str) -> Dict:
     result["articles_count"] = GetUserArticlesCount(user_url)
     result["introduction_text"] = data["introduction_text"]
     result["badges_list"] = data["badges_list"]
-    result["last_update_time"] = data["last_update_time"]
+    # 数据存在问题，暂时不获取
+    # result["last_update_time"] = data["last_update_time"]
     result["next_anniversary_day"] = data["next_anniversary_day"]
     result["vip_type"] = data["vip_info"]["vip_type"]
     result["vip_expire_time"] = data["vip_info"]["expire_date"]
