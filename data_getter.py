@@ -1,10 +1,14 @@
+from collections import Counter
 from datetime import datetime
 from os import mkdir, path
+from pickle import STOP
 from threading import Thread
 from time import sleep
-from typing import Dict
+from typing import Dict, List
+from wordcloud import WordCloud
 
-from JianshuResearchTools.article import GetArticleWordage
+import jieba
+from JianshuResearchTools.article import GetArticleText, GetArticleWordage
 from JianshuResearchTools.convert import (ArticleSlugToArticleUrl,
                                           UserUrlToUserSlug)
 from JianshuResearchTools.user import (GetUserAllArticlesInfo,
@@ -17,6 +21,14 @@ from exceptions import QueueEmptyException
 from log_service import AddRunLog
 from queue_manager import GetOneToProcess, ProcessFinished
 
+jieba.setLogLevel(jieba.logging.ERROR)  # 关闭 jieba 的日志输出
+
+with open("wordcloud_assets/stopwords.txt", "r", encoding="utf-8") as f:
+    STOPWORDS = [x.replace("\n", "") for x in f.readlines()]  # 预加载停用词词库
+
+with open("wordcloud_assets/hotwords.txt", "r", encoding="utf-8") as f:
+    for word in f.readlines():
+        jieba.add_word(word.replace("\n", ""))  # 将热点词加入词库
 
 def GetUserArticleData(user_url: str) -> DataFrame:
     result = []
@@ -60,6 +72,17 @@ def GetUserBasicData(user_url: str) -> Dict:
     return result
 
 
+def GetWordcloud(articles_list: List[str], user_slug: str) -> None:
+    words_count = Counter()
+    for article_url in articles_list:
+        cutted_text = jieba.cut(GetArticleText(article_url))
+        cutted_text = (word for word in cutted_text if len(word) > 1 and word not in STOPWORDS)
+        words_count += Counter(cutted_text)
+    wordcloud = WordCloud(font_path="wordcloud_assets/font.otf", width=1920, height=1080, background_color="white")
+    # 筛选出现五次以上的词
+    img = wordcloud.generate_from_frequencies({key: value for key, value in words_count.items() if value > 5})
+    img.to_file(f"user_data/{user_slug}/wordcloud_{user_slug}.png")
+
 def main():
     if not path.exists("user_data"):
         mkdir("user_data")
@@ -77,6 +100,7 @@ def main():
 
         article_data = GetUserArticleData(user_url)
         article_data.to_csv(f"user_data/{user_slug}/article_data_{user_slug}.csv", index=False)
+        GetWordcloud((ArticleSlugToArticleUrl(x) for x in list(article_data["aslug"])), user_slug)
         basic_data = GetUserBasicData(user_url)
         with open(f"user_data/{user_slug}/basic_data_{user_slug}.yaml", "w", encoding="utf-8") as f:
             yaml_dump(basic_data, f, indent=4, allow_unicode=True)

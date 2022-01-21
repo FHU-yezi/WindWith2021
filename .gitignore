@@ -3,3 +3,4 @@ __pycache__/
 .vscode/
 user_data/
 *.db
+*.otf
