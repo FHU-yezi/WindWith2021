@@ -72,7 +72,7 @@ def main():
             continue
         else:
             user_slug = UserUrlToUserSlug(user_url)
-            if not path.exists(user_slug):  # 避免获取到中途时服务重启导致文件夹已存在报错
+            if not path.exists(f"user_data/{user_slug}"):  # 避免获取到中途时服务重启导致文件夹已存在报错
                 mkdir(f"user_data/{user_slug}")
 
         article_data = GetUserArticleData(user_url)
