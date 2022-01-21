@@ -153,6 +153,7 @@ def ShowSummary(basic_data: Dict, articles_data: DataFrame):
     yield None
     with use_scope("output"):
         if basic_data['badges_list']:
+            put_text(f"你已经拥有了 {len(basic_data['badges_list'])} 枚徽章")
             put_table([[x, BADGE_TO_TYPE.get(x, "未知")] for x in basic_data["badges_list"]], ["徽章名称", "分类"])
         else:
             put_text("什么？你还没有徽章？为何不多写点文章申请个创作者，或者去做岛主？")
