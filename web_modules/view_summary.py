@@ -1,5 +1,6 @@
 from datetime import datetime
 from typing import Dict
+from PIL.Image import open as OpenImage
 
 from exceptions import UserDataDoesNotReadyException, UserDoesNotExistException
 from JianshuResearchTools.convert import UserUrlToUserSlug
@@ -21,7 +22,7 @@ with open("badge_to_type.yaml", "r", encoding="utf-8") as f:
     BADGE_TO_TYPE = yaml_load(f, SafeLoader)  # 初始化徽章类型映射
 
 
-def ShowSummary(basic_data: Dict, articles_data: DataFrame):
+def ShowSummary(basic_data: Dict, articles_data: DataFrame, wordcloud_path: str):
     with use_scope("output"):
         put_text("四季更替，星河流转，2021 是一个充满生机与挑战的年份。")
         put_text("简书，又陪伴你走过了一年。")
@@ -166,6 +167,12 @@ def ShowSummary(basic_data: Dict, articles_data: DataFrame):
         put_text("\n")
     yield None
     with use_scope("output"):
+        put_text("你的年度热词是什么呢？看看这张词云图吧：")
+        put_image(OpenImage(wordcloud_path), format="png")
+        put_text("\n")
+
+    yield None
+    with use_scope("output"):
         put_text(f"在大家面前，你的名字是{basic_data['name']}，而在简书的数据库中，你的代号是 {basic_data['id']}。")
         put_text("技术，无限可能，正如你面前的这份年终总结一样。")
         put_text("虽然它在背后，但你的每一份创作体验，都少不了万千技术工作者的默默付出。")
@@ -232,7 +239,7 @@ def GetAllData() -> None:
         SetLocalStorage("user_url", user_url)  # 将用户链接保存到本地
         with use_scope("output"):  # 初始化输出区
             pass
-        show_summary_obj = ShowSummary(basic_data, article_data)
+        show_summary_obj = ShowSummary(basic_data, article_data, f"user_data/{user_slug}/wordcloud_{user_slug}.png")
         with use_scope("continue_button_area"):
             put_button("继续", color="dark", outline=True, onclick=lambda: next(show_summary_obj))
 
