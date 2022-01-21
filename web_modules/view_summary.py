@@ -110,11 +110,39 @@ def ShowSummary(basic_data: Dict, articles_data: DataFrame):
     yield None
     with use_scope("output"):
         put_text(f"今年，你写下了{articles_data['aslug'].count()}篇文章，{round(articles_data['wordage'].sum() / 10000, 1)}万字。")
-        put_text(f"这一年，你写的文章，占总文章数的{round(basic_data['articles_count'] / articles_data['aslug'].count(), 2)}")
+        put_text(f"这一年，你写的文章，占总文章数的{round(articles_data['aslug'].count() / basic_data['articles_count'], 2) * 100}%。")
+        if articles_data["aslug"].count() < 5:
+            put_text("期待在新的一年中看到你的更多文章！")
+        elif 5 < articles_data["aslug"].count() < 30:
+            put_text("")
+        elif 30 < articles_data["aslug"].count() < 100:
+            put_text("笔耕不辍，你的努力值得被肯定！")
+        elif 100 < articles_data["aslug"].count() < 300:
+            put_text("你的文章很多，相信质量也很高吧！")
+        elif articles_data["aslug"].count() > 300:
+            put_text("每天在简书更新文章，已经成为了你的习惯！")
+        put_text("\n")
+
         put_text(f"{articles_data['likes_count'].sum()}个点赞，是你今年的成果，占你总收获的{round(articles_data['likes_count'].sum() / basic_data['likes_count'], 4) * 100}%。")
+        if articles_data["likes_count"].sum() < 10:
+            put_text("经常和简友互动，可以增加你在社区的影响力哦。")
+        elif 10 < articles_data["likes_count"].sum() < 100:
+            put_text("点赞，是简友们对你创作的认可，而这一切的基石，是你的文章质量。")
+        elif 100 < articles_data["likes_count"].sum() < 500:
+            put_text("很棒哦，你的文章质量很高，简友们都觉得你很棒！")
+        elif 500 < articles_data["likes_count"].sum() < 2000:
+            put_text("你已经会经常收到点赞了，让文章质量继续稳步提升吧！")
+        elif 2000 < articles_data["likes_count"].sum() < 5000:
+            put_text("你在社区已经有了自己的忠实读者，他们的支持，对你的影响力提升有不可磨灭的贡献。")
+        elif articles_data["likes_count"].sum() > 5000:
+            put_text("你得到了简友们的广泛认可，一呼百应用来形容你再适合不过了。")
+        put_text("\n")
+
         put_text(f"你的最近一次创作在{datetime.fromisoformat(list(articles_data[articles_data['is_top'] == False]['release_time'])[0]).replace(tzinfo=None)}，还记得当时写了什么吗？")
         put_text("\n")
+
     yield None
+
     with use_scope("output"):
         if basic_data['vip_type']:
             put_text(f"不知是什么原因，让你开通了{basic_data['vip_type']}会员呢？")
