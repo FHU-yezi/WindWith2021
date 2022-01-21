@@ -33,8 +33,8 @@ def ShowSummary(basic_data: Dict, articles_data: DataFrame):
     yield None
 
     with use_scope("output"):
-        put_text(f"时至今日，你已经在简书写下了{basic_data['articles_count']}篇文章，"
-                 f"一共{round(basic_data['wordage'] / 10000, 1)}万字。")
+        put_text(f"时至今日，你已经在简书写下了 {basic_data['articles_count']} 篇文章，"
+                 f"一共 {round(basic_data['wordage'] / 10000, 1)} 万字。")
         if basic_data["wordage"] == 0:
             put_text("不妨去写写您的所思所想？")
         elif 0 < basic_data["wordage"] < 30000:
@@ -49,7 +49,7 @@ def ShowSummary(basic_data: Dict, articles_data: DataFrame):
             put_text("已经是社区中数一数二的存在了哦，让高质量的内容成为你的代名词吧。")
         put_text("\n")
 
-        put_text(f"这些文字吸引了{basic_data['fans_count']}个粉丝，还有{basic_data['likes_count']}次点赞。")
+        put_text(f"这些文字吸引了 {basic_data['fans_count']} 个粉丝，还有 {basic_data['likes_count']} 次点赞。")
         if basic_data["likes_count"] == 0:
             put_text("点赞？拿来吧你！")
         elif 0 < basic_data["likes_count"] < 100:
@@ -69,7 +69,7 @@ def ShowSummary(basic_data: Dict, articles_data: DataFrame):
     yield None
 
     with use_scope("output"):
-        put_text(f"你拥有{basic_data['assets_count']}资产，其中{basic_data['FP_count']}简书钻，{basic_data['FTN_count']}简书贝。")
+        put_text(f"你拥有 {basic_data['assets_count']} 资产，其中 {basic_data['FP_count']} 简书钻，{basic_data['FTN_count']} 简书贝。")
         if basic_data["assets_count"] < 5:
             put_text("难道你还不知道这都是些什么东西？去搜索一下吧！")
         elif 5 < basic_data["assets_count"] < 100:
@@ -88,7 +88,7 @@ def ShowSummary(basic_data: Dict, articles_data: DataFrame):
             put_text("不管你是靠写文章还是使用钞能力，这个资产量绝对属于顶尖水准。")
         put_text("\n")
 
-        put_text(f"你的钻贝比为{basic_data['FP / FTN']}。")
+        put_text(f"你的钻贝比为 {basic_data['FP / FTN']}。")
         try:
             FP_percent = basic_data["FP_count"] / basic_data["assets_count"]
         except ZeroDivisionError:  # 没有资产导致除数为零
@@ -109,12 +109,12 @@ def ShowSummary(basic_data: Dict, articles_data: DataFrame):
 
     yield None
     with use_scope("output"):
-        put_text(f"今年，你写下了{articles_data['aslug'].count()}篇文章，{round(articles_data['wordage'].sum() / 10000, 1)}万字。")
-        put_text(f"这一年，你写的文章，占总文章数的{round(articles_data['aslug'].count() / basic_data['articles_count'], 2) * 100}%。")
+        put_text(f"今年，你写下了 {articles_data['aslug'].count()} 篇文章，{round(articles_data['wordage'].sum() / 10000, 1)} 万字。")
+        put_text(f"这一年，你写的文章，占总文章数的 {round(articles_data['aslug'].count() / basic_data['articles_count'], 2) * 100}%。")
         if articles_data["aslug"].count() < 5:
             put_text("期待在新的一年中看到你的更多文章！")
         elif 5 < articles_data["aslug"].count() < 30:
-            put_text("")
+            put_text("书写更多内容，走向更广阔的天地吧！")
         elif 30 < articles_data["aslug"].count() < 100:
             put_text("笔耕不辍，你的努力值得被肯定！")
         elif 100 < articles_data["aslug"].count() < 300:
@@ -123,7 +123,7 @@ def ShowSummary(basic_data: Dict, articles_data: DataFrame):
             put_text("每天在简书更新文章，已经成为了你的习惯！")
         put_text("\n")
 
-        put_text(f"{articles_data['likes_count'].sum()}个点赞，是你今年的成果，占你总收获的{round(articles_data['likes_count'].sum() / basic_data['likes_count'], 4) * 100}%。")
+        put_text(f"{articles_data['likes_count'].sum()} 个点赞，是你今年的成果，占你总收获的 {round(articles_data['likes_count'].sum() / basic_data['likes_count'], 4) * 100}%。")
         if articles_data["likes_count"].sum() < 10:
             put_text("经常和简友互动，可以增加你在社区的影响力哦。")
         elif 10 < articles_data["likes_count"].sum() < 100:
@@ -138,7 +138,7 @@ def ShowSummary(basic_data: Dict, articles_data: DataFrame):
             put_text("你得到了简友们的广泛认可，一呼百应用来形容你再适合不过了。")
         put_text("\n")
 
-        put_text(f"你的最近一次创作在{datetime.fromisoformat(list(articles_data[articles_data['is_top'] == False]['release_time'])[0]).replace(tzinfo=None)}，还记得当时写了什么吗？")
+        put_text(f"你的最近一次创作在 {datetime.fromisoformat(list(articles_data[articles_data['is_top'] == False]['release_time'])[0]).replace(tzinfo=None)}，还记得当时写了什么吗？")
         put_text("\n")
 
     yield None
@@ -146,7 +146,7 @@ def ShowSummary(basic_data: Dict, articles_data: DataFrame):
     with use_scope("output"):
         if basic_data['vip_type']:
             put_text(f"不知是什么原因，让你开通了{basic_data['vip_type']}会员呢？")
-            put_text(f"你的会员在{basic_data['vip_expire_time']}到期，要不要考虑一下续费？")
+            put_text(f"你的会员在 {basic_data['vip_expire_time']} 到期，要不要考虑一下续费？")
         else:
             put_text("你貌似没有开通简书会员呢，全站去广告、发文数量上限提升等等特权，了解一下？")
         put_text("\n")
@@ -160,12 +160,12 @@ def ShowSummary(basic_data: Dict, articles_data: DataFrame):
         put_text("\n")
     yield None
     with use_scope("output"):
-        put_text(f"知道{basic_data['next_anniversary_day'].strftime(r'%Y 年 %m 月 %d 日')}是什么日子吗？")
+        put_text(f"知道 {basic_data['next_anniversary_day'].strftime(r'%Y 年 %m 月 %d 日')}是什么日子吗？")
         put_text("是你来简书的周年纪念日哦！到时候要不要发篇文章说说自己的感想？")
         put_text("\n")
     yield None
     with use_scope("output"):
-        put_text(f"在大家面前，你的名字是{basic_data['name']}，而在简书的数据库中，你的代号是{basic_data['id']}。")
+        put_text(f"在大家面前，你的名字是{basic_data['name']}，而在简书的数据库中，你的代号是 {basic_data['id']}。")
         put_text("技术，无限可能，正如你面前的这份年终总结一样。")
         put_text("虽然它在背后，但你的每一份创作体验，都少不了万千技术工作者的默默付出。")
         put_text("\n")
