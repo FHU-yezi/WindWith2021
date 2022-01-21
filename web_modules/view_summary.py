@@ -160,7 +160,7 @@ def ShowSummary(basic_data: Dict, articles_data: DataFrame):
         put_text("\n")
     yield None
     with use_scope("output"):
-        put_text(f"知道{basic_data['next_anniversary_day']}是什么日子吗？")
+        put_text(f"知道{basic_data['next_anniversary_day'].strftime(r'%Y 年 %m 月 %d 日')}是什么日子吗？")
         put_text("是你来简书的周年纪念日哦！到时候要不要发篇文章说说自己的感想？")
         put_text("\n")
     yield None
