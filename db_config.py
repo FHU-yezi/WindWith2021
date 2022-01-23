@@ -39,6 +39,7 @@ class ViewLog(Model):
 
 class UserQueue(Model):
     user_url = CharField(primary_key=True)
+    user_name = CharField()
     status = IntegerField()
     add_time = DateTimeField()
     start_process_time = DateTimeField(null=True)

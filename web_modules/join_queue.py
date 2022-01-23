@@ -1,5 +1,7 @@
 from exceptions import (QueueFullException, UserAlreadyExistsException,
                         UserBannedException)
+from JianshuResearchTools.assert_funcs import (AssertUserStatusNormal,
+                                               AssertUserUrl)
 from JianshuResearchTools.exceptions import InputError, ResourceError
 from JianshuResearchTools.user import GetUserName
 from log_service import AddRunLog
@@ -12,17 +14,21 @@ from .utils import GetLocalStorage, SetFooter, SetLocalStorage
 
 
 def JoinQueueAction():
-    if not pin["user_url"]:
+    user_url = pin["user_url"]
+    if not user_url:
         return  # 不输入链接直接点击按钮时不做任何操作
 
     try:
-        user_name = GetUserName(pin["user_url"])
+        AssertUserUrl(user_url)
+        AssertUserStatusNormal(user_url)
     except (InputError, ResourceError):
         toast("输入的链接无效，请检查", color="warn")
         return
+    else:
+        user_name = GetUserName(user_url, disable_check=True)
 
     try:
-        AddToQueue(pin["user_url"])
+        AddToQueue(user_url, user_name)
     except QueueFullException:
         AddRunLog(2, f"用户 {pin['user_url']} 加入队列失败，因为队列已满")
         toast("队列已满，请稍后再试", color="warn")
@@ -47,7 +53,7 @@ def JoinQueueAction():
             put_button("提交", color="success", disabled=True, onclick=JoinQueueAction)  # 禁用按钮，防止用户重试
     else:
         AddRunLog(3, f"用户 {pin['user_url']} 加入队列成功")
-        SetLocalStorage("user_url", pin["user_url"])
+        SetLocalStorage("user_url", user_url)  # 在本地缓存用户信息
         toast("加入队列成功", color="success")
         with use_scope("submit_button", clear=True):
             put_button("提交", color="success", disabled=True, onclick=JoinQueueAction)  # 禁用按钮，防止用户重复点击
