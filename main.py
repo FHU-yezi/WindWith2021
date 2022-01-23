@@ -3,14 +3,17 @@ from pywebio.output import put_link, put_markdown
 from pywebio.session import info as session_info
 
 from data_getter import init as data_getter_init
-from log_service import AddViewLog
+from log_service import AddRunLog, AddViewLog
 from web_modules.join_queue import JoinQueue
 from web_modules.utils import GetUrl, SetFooter
 from web_modules.view_summary import ViewSummary
 
-data_getter_init()  # 初始化数据获取线程
-
 __version__ = "0.4.0"
+AddRunLog(3, f"版本号：{__version__}")
+
+
+data_getter_init()  # 初始化数据获取线程
+AddRunLog(3, "初始化数据获取线程成功")
 
 
 def index():
@@ -24,7 +27,7 @@ def index():
 
     这不是官方的年度总结。
 
-    我是一名技术工作者，今年简书的年度总结迟迟没有上线，而且 2019 和 2020 的年度总结都不太完整，于是就想着用自己的技术能力，为社区呈现一份不一样的年终总结。
+    我是一名技术工作者，今年简书的年度总结迟迟没有上线，而且 2019 和 2020 的年度总结都不太完整，于是就想着用自己的技术能力，为社区呈现一份不一样的年度总结。
 
     这是我第一次开发这种项目，如果有不完美，请大家多多包涵。
     """)
@@ -49,4 +52,5 @@ def index():
     SetFooter(f"Version：{__version__} Made with PyWebIO and ♥")
 
 
+AddRunLog(3, "启动服务......")
 start_server([JoinQueue, ViewSummary, index], port=8603)

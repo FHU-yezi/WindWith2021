@@ -19,28 +19,31 @@ def JoinQueueAction():
         return  # 不输入链接直接点击按钮时不做任何操作
 
     try:
+        AddRunLog(4, f"开始对 {user_url} 进行校验")
         AssertUserUrl(user_url)
         AssertUserStatusNormal(user_url)
     except (InputError, ResourceError):
         toast("输入的链接无效，请检查", color="warn")
+        AddRunLog(4, f"{user_url}无效")
         return
     else:
         user_name = GetUserName(user_url, disable_check=True)
+        AddRunLog(4, f"{user_url} 校验成功，对应的用户名为 {user_name}")
 
     try:
         AddToQueue(user_url, user_name)
     except QueueFullException:
-        AddRunLog(2, f"用户 {pin['user_url']} 加入队列失败，因为队列已满")
+        AddRunLog(2, f"用户 {user_url}（{user_name}）加入队列失败，因为队列已满")
         toast("队列已满，请稍后再试", color="warn")
         with use_scope("submit_button", clear=True):
             put_button("提交", color="success", disabled=True, onclick=JoinQueueAction)  # 禁用按钮，防止用户频繁重试
     except UserAlreadyExistsException:
-        AddRunLog(2, f"用户 {pin['user_url']} 加入队列失败，因为他已加入队列")
+        AddRunLog(2, f"用户 {user_url}（{user_name}）加入队列失败，因为他已加入队列")
         toast("您已加入队列，请勿重复提交", color="warn")
         with use_scope("submit_button", clear=True):
             put_button("提交", color="success", disabled=True, onclick=JoinQueueAction)  # 禁用按钮，防止重复提交
     except UserBannedException:
-        AddRunLog(2, f"用户 {pin['user_url']} 加入队列失败，因为他已被封禁")
+        AddRunLog(2, f"用户 {user_url}（{user_name}）加入队列失败，因为他已被封禁")
         toast("您已被封禁，无法查看年终总结", color="danger")
         put_markdown("""
         # 为什么？
@@ -52,7 +55,7 @@ def JoinQueueAction():
         with use_scope("submit_button", clear=True):
             put_button("提交", color="success", disabled=True, onclick=JoinQueueAction)  # 禁用按钮，防止用户重试
     else:
-        AddRunLog(3, f"用户 {pin['user_url']} 加入队列成功")
+        AddRunLog(3, f"用户 {user_url}（{user_name}）加入队列成功")
         SetLocalStorage("user_url", user_url)  # 在本地缓存用户信息
         toast("加入队列成功", color="success")
         with use_scope("submit_button", clear=True):
