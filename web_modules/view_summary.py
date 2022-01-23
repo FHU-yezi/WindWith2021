@@ -1,12 +1,14 @@
 from datetime import datetime
 from typing import Dict
-from PIL.Image import open as OpenImage
 
 from exceptions import UserDataDoesNotReadyException, UserDoesNotExistException
+from JianshuResearchTools.assert_funcs import (AssertUserStatusNormal,
+                                               AssertUserUrl)
 from JianshuResearchTools.convert import UserUrlToUserSlug
 from JianshuResearchTools.exceptions import InputError, ResourceError
 from JianshuResearchTools.user import GetUserName
 from pandas import DataFrame, read_csv
+from PIL.Image import open as OpenImage
 from pywebio.input import TEXT
 from pywebio.output import (clear, put_button, put_image, put_link, put_table,
                             put_text, toast, use_scope)
@@ -16,7 +18,6 @@ from yaml import SafeLoader
 from yaml import load as yaml_load
 
 from .utils import GetLocalStorage, GetUrl, SetFooter, SetLocalStorage
-
 
 with open("badge_to_type.yaml", "r", encoding="utf-8") as f:
     BADGE_TO_TYPE = yaml_load(f, SafeLoader)  # 初始化徽章类型映射
@@ -208,13 +209,16 @@ def GetAllData() -> None:
         return
 
     try:
-        user_name = GetUserName(user_url)
+        AssertUserUrl(user_url)
+        AssertUserStatusNormal(user_url)
     except (InputError, ResourceError):
         toast("输入的链接无效，请检查", color="warn")
         return
+    else:
+        user_name = GetUserName(user_url, disable_check=True)
 
     try:
-        user_url = GetOneToShowSummary(user_url)  # 将数据库中的用户状态更改为已查看年度总结
+        user_url = GetOneToShowSummary(user_url).user_url  # 将数据库中的用户状态更改为已查看年度总结
     except UserDoesNotExistException:
         toast("您未加入队列，请先排队", color="warn")
         with use_scope("data_input", clear=True):
