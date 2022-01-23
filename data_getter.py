@@ -1,7 +1,6 @@
 from collections import Counter
 from datetime import datetime
 from os import mkdir, path
-from pickle import STOP
 from threading import Thread
 from time import sleep
 from typing import Dict, List
@@ -98,6 +97,7 @@ def main():
             if not path.exists(f"user_data/{user_slug}"):  # 避免获取到中途时服务重启导致文件夹已存在报错
                 mkdir(f"user_data/{user_slug}")
 
+        AddRunLog(3, f"开始执行数据获取任务，user_slug：{user_slug}")
         article_data = GetUserArticleData(user_url)
         article_data.to_csv(f"user_data/{user_slug}/article_data_{user_slug}.csv", index=False)
         GetWordcloud((ArticleSlugToArticleUrl(x) for x in list(article_data["aslug"])), user_slug)
@@ -106,6 +106,7 @@ def main():
             yaml_dump(basic_data, f, indent=4, allow_unicode=True)
 
         ProcessFinished(user_url)  # 如果数据获取完整，就将用户状态改为 3，表示已完成数据获取
+        AddRunLog(3, f"数据获取任务执行完毕，user_slug：{user_slug}")
 
 
 def init():
