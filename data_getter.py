@@ -29,15 +29,15 @@ with open("wordcloud_assets/hotwords.txt", "r", encoding="utf-8") as f:
     for word in f.readlines():
         jieba.add_word(word.replace("\n", ""))  # 将热点词加入词库
 
+
 def GetUserArticleData(user_url: str) -> DataFrame:
     result = []
-    for part in GetUserAllArticlesInfo(user_url, count=50):  # 增加单次请求量，提高性能
-        for item in part:
-            if item["release_time"].replace(tzinfo=None) >= datetime(2021, 1, 1, 0, 0, 0):
-                item["wordage"] = GetArticleWordage(ArticleSlugToArticleUrl(item["aslug"]))
-                result.append(item)
-        if part[-1]["release_time"].replace(tzinfo=None) >= datetime(2021, 1, 1, 0, 0, 0):
-            break  # 如果某一项的时间早于 2021 年，则已经采集了所有 2021 年的文章
+    for item in GetUserAllArticlesInfo(user_url, count=50):  # 增加单次请求量，提高性能
+        if item["release_time"].replace(tzinfo=None) >= datetime(2021, 1, 1, 0, 0, 0):
+            item["wordage"] = GetArticleWordage(ArticleSlugToArticleUrl(item["aslug"]))
+            result.append(item)
+        else:  # 文章时间早于 2021 年
+            break
     return DataFrame(result)
 
 
@@ -72,7 +72,7 @@ def GetUserBasicData(user_url: str) -> Dict:
 
 
 def GetWordcloud(articles_list: List[str], user_slug: str) -> None:
-    words_count = Counter()
+    words_count: Counter = Counter()
     for article_url in articles_list:
         cutted_text = jieba.cut(GetArticleText(article_url))
         cutted_text = (word for word in cutted_text if len(word) > 1 and word not in STOPWORDS)
@@ -81,6 +81,7 @@ def GetWordcloud(articles_list: List[str], user_slug: str) -> None:
     # 筛选出现五次以上的词
     img = wordcloud.generate_from_frequencies({key: value for key, value in words_count.items() if value > 5})
     img.to_file(f"user_data/{user_slug}/wordcloud_{user_slug}.png")
+
 
 def main():
     if not path.exists("user_data"):
