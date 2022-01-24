@@ -8,7 +8,7 @@ from web_modules.join_queue import JoinQueue
 from web_modules.utils import GetUrl, SetFooter
 from web_modules.view_summary import ViewSummary
 
-__version__ = "0.4.0"
+__version__ = "0.5.0"
 AddRunLog(3, f"版本号：{__version__}")
 
 
