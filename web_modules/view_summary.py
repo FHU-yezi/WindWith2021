@@ -12,8 +12,9 @@ from log_service import AddRunLog
 from pandas import DataFrame, read_csv
 from PIL.Image import open as OpenImage
 from pywebio.input import TEXT
-from pywebio.output import (clear, put_button, put_html, put_image, put_link,
-                            put_loading, put_table, put_text, toast, use_scope)
+from pywebio.output import (clear, put_button, put_buttons, put_html,
+                            put_image, put_link, put_loading, put_table,
+                            put_text, toast, use_scope)
 from pywebio.pin import pin, put_input
 from queue_manager import GetOneToShowSummary
 from yaml import SafeLoader
@@ -129,7 +130,7 @@ def ShowSummary(basic_data: Dict, articles_data: DataFrame, wordcloud_path: str)
             put_text("每天在简书更新文章，已经成为了你的习惯！")
         put_text("\n")
 
-        put_text(f"{articles_data['likes_count'].sum()} 个点赞，是你今年的成果，占你总收获的 {round(articles_data['likes_count'].sum() / basic_data['likes_count'], 4) * 100}%。")
+        put_text(f"{articles_data['likes_count'].sum()} 个点赞，是你今年的成果，占你总收获的 {round(articles_data['likes_count'].sum() / basic_data['likes_count'] * 100, 2)}%。")
         if articles_data["likes_count"].sum() < 10:
             put_text("经常和简友互动，可以增加你在社区的影响力哦。")
         elif 10 < articles_data["likes_count"].sum() < 100:
@@ -144,7 +145,7 @@ def ShowSummary(basic_data: Dict, articles_data: DataFrame, wordcloud_path: str)
             put_text("你得到了简友们的广泛认可，一呼百应用来形容你再适合不过了。")
         put_text("\n")
 
-        put_text(f"你的最近一次创作在 {datetime.fromisoformat(list(articles_data[articles_data['is_top'] == False]['release_time'])[0]).replace(tzinfo=None)}，还记得当时写了什么吗？")
+        put_text(f"你的最近一次创作在 {datetime.fromisoformat(list(articles_data[articles_data['is_top'] == False]['release_time'])[0]).replace(tzinfo=None).strftime(r'%Y 年 %m 月 %d 日')}，还记得当时写了什么吗？")
         put_text("\n")
 
     yield None
@@ -171,7 +172,7 @@ def ShowSummary(basic_data: Dict, articles_data: DataFrame, wordcloud_path: str)
     yield None
     with use_scope("output"):
         if basic_data['badges_list']:
-            put_text(f"你已经拥有了 {len(basic_data['badges_list'])} 枚徽章")
+            put_text(f"你拥有 {len(basic_data['badges_list'])} 枚徽章：")
             put_table([[x, BADGE_TO_TYPE.get(x, "未知")] for x in basic_data["badges_list"]], ["徽章名称", "分类"])
         else:
             put_text("什么？你还没有徽章？为何不多写点文章申请个创作者，或者去做岛主？")
@@ -202,6 +203,7 @@ def ShowSummary(basic_data: Dict, articles_data: DataFrame, wordcloud_path: str)
         put_text("这是，属于你的简书社区。")
         put_text("\n")
     yield None
+
     with use_scope("output"):
         put_text("愿每一行文字，都能被知晓；")
         put_text("愿每一名创作者，都能找到自己的价值；")
@@ -270,7 +272,8 @@ def GetAllData() -> None:
             pass
         show_summary_obj = ShowSummary(basic_data, article_data, f"user_data/{user_slug}/wordcloud_{user_slug}.png")
         with use_scope("continue_button_area"):
-            put_button("继续", color="dark", outline=True, onclick=lambda: next(show_summary_obj))
+            put_buttons([dict(label="继续", value="continue", color="dark")],
+                        outline=True, onclick=lambda _: next(show_summary_obj), serial_mode=True)
 
 
 def ViewSummary():
