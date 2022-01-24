@@ -1,6 +1,7 @@
 from datetime import datetime
 from typing import Dict
 
+import plotly.express as px
 from exceptions import UserDataDoesNotReadyException, UserDoesNotExistException
 from JianshuResearchTools.assert_funcs import (AssertUserStatusNormal,
                                                AssertUserUrl)
@@ -11,8 +12,8 @@ from log_service import AddRunLog
 from pandas import DataFrame, read_csv
 from PIL.Image import open as OpenImage
 from pywebio.input import TEXT
-from pywebio.output import (clear, put_button, put_image, put_link, put_table,
-                            put_text, toast, use_scope)
+from pywebio.output import (clear, put_button, put_html, put_image, put_link,
+                            put_table, put_text, toast, use_scope)
 from pywebio.pin import pin, put_input
 from queue_manager import GetOneToShowSummary
 from yaml import SafeLoader
@@ -145,6 +146,17 @@ def ShowSummary(basic_data: Dict, articles_data: DataFrame, wordcloud_path: str)
 
         put_text(f"你的最近一次创作在 {datetime.fromisoformat(list(articles_data[articles_data['is_top'] == False]['release_time'])[0]).replace(tzinfo=None)}，还记得当时写了什么吗？")
         put_text("\n")
+
+    yield None
+
+    with use_scope("output"):
+        articles_data["month"] = articles_data["release_time"].apply(lambda x: datetime.fromisoformat(x).month)
+        put_text(f"你哪个月发布的文章最多呢？答案是 {articles_data['month'].value_counts().index[0]} 月，"
+                 f"这个月你发布了 {articles_data['month'].value_counts().values[0]} 篇文章。")
+
+        graph_obj = px.line(articles_data.groupby("month").count(), y="title")
+        graph_obj.update_layout(xaxis_title="月份", yaxis_title="发布文章数")
+        put_html(graph_obj.to_html(include_plotlyjs="require", full_html=False))
 
     yield None
 
