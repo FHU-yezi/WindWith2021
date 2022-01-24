@@ -15,21 +15,25 @@ from JianshuResearchTools.user import (GetUserAllArticlesInfo,
 from pandas import DataFrame
 from wordcloud import WordCloud
 from yaml import dump as yaml_dump
+from sys import platform as sys_platform
 
 from exceptions import QueueEmptyException
 from log_service import AddRunLog
 from queue_manager import GetOneToProcess, ProcessFinished
 
 jieba.setLogLevel(jieba.logging.ERROR)  # 关闭 jieba 的日志输出
-# jieba.enable_parallel(2)
+if sys_platform != "win32":
+    AddRunLog(3, "已开启多进程分词")
+    jieba.enable_parallel(2)
+else:
+    AddRunLog(2, "由于当前系统不支持，多进程分词已禁用")
 
 with open("wordcloud_assets/stopwords.txt", "r", encoding="utf-8") as f:
     STOPWORDS = [x.replace("\n", "") for x in f.readlines()]  # 预加载停用词词库
+AddRunLog(4, "加载停用词成功")
 
-# with open("wordcloud_assets/hotwords.txt", "r", encoding="utf-8") as f:
-#     for word in f.readlines():
-#         jieba.add_word(word.replace("\n", ""))  # 将热点词加入词库
 jieba.load_userdict("wordcloud_assets/hotwords.txt")  # 将热点词加入词库
+AddRunLog(4, "加载热点词成功")
 
 
 def GetUserArticleData(user_url: str) -> DataFrame:
@@ -79,9 +83,10 @@ def GetWordcloud(articles_list: List[str], user_slug: str) -> None:
         cutted_text = jieba.cut(GetArticleText(article_url, disable_check=True))
         cutted_text = (word for word in cutted_text if len(word) > 1 and word not in STOPWORDS)
         words_count += Counter(cutted_text)
-    wordcloud = WordCloud(font_path="wordcloud_assets/font.otf", width=1920, height=1080, background_color="white")
+    wordcloud = WordCloud(font_path="wordcloud_assets/font.otf", width=1280, height=720,
+                          background_color="white", max_words=100)
     # 筛选出现五次以上的词
-    img = wordcloud.generate_from_frequencies({key: value for key, value in words_count.items() if value > 5})
+    img = wordcloud.generate_from_frequencies({key: value for key, value in words_count.items() if value > 10})
     img.to_file(f"user_data/{user_slug}/wordcloud_{user_slug}.png")
 
 
@@ -101,12 +106,21 @@ def main():
                 mkdir(f"user_data/{user_slug}")
 
         AddRunLog(3, f"开始执行数据获取任务，user_slug：{user_slug}")
-        article_data = GetUserArticleData(user.user_url)
-        article_data.to_csv(f"user_data/{user_slug}/article_data_{user_slug}.csv", index=False)
-        GetWordcloud((ArticleSlugToArticleUrl(x) for x in list(article_data["aslug"])), user_slug)
+
+        AddRunLog(4, f"开始获取 {user.user_url}（{user.user_name}）的基础数据")
         basic_data = GetUserBasicData(user.user_url)
         with open(f"user_data/{user_slug}/basic_data_{user_slug}.yaml", "w", encoding="utf-8") as f:
             yaml_dump(basic_data, f, indent=4, allow_unicode=True)
+        AddRunLog(4, f"获取 {user.user_url}（{user.user_name}）的基础数据完成")
+
+        AddRunLog(4, f"开始获取 {user.user_url}（{user.user_name}）的文章数据")
+        article_data = GetUserArticleData(user.user_url)
+        article_data.to_csv(f"user_data/{user_slug}/article_data_{user_slug}.csv", index=False)
+        AddRunLog(4, f"获取 {user.user_url}（{user.user_name}）的文章数据完成，共 {len(article_data)} 条")
+
+        AddRunLog(4, f"开始为 {user.user_url}（{user.user_name}）生成词云图")
+        GetWordcloud((ArticleSlugToArticleUrl(x) for x in list(article_data["aslug"])), user_slug)
+        AddRunLog(4, f"为 {user.user_url}（{user.user_name}）生成词云图完成")
 
         ProcessFinished(user.user_url)  # 如果数据获取完整，就将用户状态改为 3，表示已完成数据获取
         AddRunLog(3, f"数据获取任务执行完毕，user_slug：{user_slug}")
@@ -115,4 +129,3 @@ def main():
 def init():
     main_thread = Thread(target=main, daemon=True)  # 设置为守护线程，避免造成主线程无法退出
     main_thread.start()
-    AddRunLog(3, "初始化数据获取主线程成功")
