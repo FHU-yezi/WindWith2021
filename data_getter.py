@@ -83,9 +83,10 @@ def GetWordcloud(articles_list: List[str], user_slug: str) -> None:
         cutted_text = jieba.cut(GetArticleText(article_url, disable_check=True))
         cutted_text = (word for word in cutted_text if len(word) > 1 and word not in STOPWORDS)
         words_count += Counter(cutted_text)
-    wordcloud = WordCloud(font_path="wordcloud_assets/font.otf", width=1280, height=720, background_color="white")
+    wordcloud = WordCloud(font_path="wordcloud_assets/font.otf", width=1280, height=720,
+                          background_color="white", max_words=100)
     # 筛选出现五次以上的词
-    img = wordcloud.generate_from_frequencies({key: value for key, value in words_count.items() if value > 5})
+    img = wordcloud.generate_from_frequencies({key: value for key, value in words_count.items() if value > 10})
     img.to_file(f"user_data/{user_slug}/wordcloud_{user_slug}.png")
 
 
