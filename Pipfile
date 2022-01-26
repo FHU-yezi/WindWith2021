@@ -12,6 +12,7 @@ wordcloud = "==1.8.1"
 peewee = "==3.14.8"
 pyyaml = "==5.4.1"
 plotly = "==5.5.0"
+kaleido = "*"
 
 [dev-packages]
 
