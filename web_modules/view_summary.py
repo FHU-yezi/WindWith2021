@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import Dict
 
-import plotly.express as px
+import plotly.graph_objs as go
 from exceptions import UserDataDoesNotReadyException, UserDoesNotExistException
 from JianshuResearchTools.assert_funcs import (AssertUserStatusNormal,
                                                AssertUserUrl)
@@ -12,9 +12,9 @@ from log_service import AddRunLog
 from pandas import DataFrame, read_csv
 from PIL.Image import open as OpenImage
 from pywebio.input import TEXT
-from pywebio.output import (clear, put_button, put_buttons, put_html,
-                            put_image, put_link, put_loading, put_table,
-                            put_text, toast, use_scope)
+from pywebio.output import (clear, put_button, put_buttons, put_image,
+                            put_link, put_loading, put_table, put_text, toast,
+                            use_scope)
 from pywebio.pin import pin, put_input
 from queue_manager import GetOneToShowSummary
 from yaml import SafeLoader
@@ -156,9 +156,19 @@ def ShowSummary(basic_data: Dict, articles_data: DataFrame, wordcloud_path: str)
                  f"这个月你发布了 {articles_data['month'].value_counts().values[0]} 篇文章。")
 
         with put_loading():
-            graph_obj = px.line(articles_data.groupby("month").count(), y="title")
-            graph_obj.update_layout(xaxis_title="月份", yaxis_title="发布文章数")
-            put_html(graph_obj.to_html(include_plotlyjs="require", full_html=False))
+            # 构建文章数据中已有月份的数据
+            data = dict(zip(range(1, 13), articles_data.groupby("month").count()["title"]))
+            # 用 0 填充缺失的月份数据
+            for month in range(1, 13):
+                if not data.get(month):
+                    data[month] = 0
+            # 转换数据集格式
+            data = go.Scatter(x=tuple(data.keys()), y=tuple(data.values()))
+            # 生成图表
+            graph_obj = go.Figure(data=data, layout={"title": "文章发布数量趋势",
+                                                     "xaxis": {"title": "月份"},
+                                                     "yaxis": {"title": "文章数量"}})
+            put_image(graph_obj.to_image(format="png", scale=2.5))
 
     yield None
 
