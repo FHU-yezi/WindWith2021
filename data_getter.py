@@ -39,10 +39,12 @@ AddRunLog(4, "加载热点词成功")
 def GetUserArticleData(user_url: str) -> DataFrame:
     result = []
     for item in GetUserAllArticlesInfo(user_url, count=50):  # 增加单次请求量，提高性能
-        if item["release_time"].replace(tzinfo=None) >= datetime(2021, 1, 1, 0, 0, 0):
+        if item["release_time"].replace(tzinfo=None) >= datetime(2021, 1, 1, 0, 0, 0) and not item["is_top"]:
             item["wordage"] = GetArticleWordage(ArticleSlugToArticleUrl(item["aslug"]), disable_check=True)
             result.append(item)
-        else:  # 文章时间早于 2021 年
+        elif item["is_top"]:  # 置顶文章发布时间早于 2021 年
+            pass
+        else:  # 非置顶文章发布时间早于 2021 年
             break
     return DataFrame(result)
 
