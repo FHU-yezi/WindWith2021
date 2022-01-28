@@ -10,6 +10,7 @@ from JianshuResearchTools.exceptions import InputError, ResourceError
 from JianshuResearchTools.user import GetUserName
 from log_service import AddRunLog
 from pandas import DataFrame, read_csv
+from pandas import to_datetime as pd_to_datetime
 from PIL.Image import open as OpenImage
 from pywebio.input import TEXT
 from pywebio.output import (clear, put_button, put_buttons, put_image,
@@ -169,6 +170,33 @@ def ShowSummary(basic_data: Dict, articles_data: DataFrame, wordcloud_path: str)
                                                      "xaxis": {"title": "月份"},
                                                      "yaxis": {"title": "文章数量"}})
             put_image(graph_obj.to_image(format="png", scale=2.5))
+
+    yield None
+
+    with use_scope("output"):
+        put_text("你在哪个时间段发布文章最多呢？")
+        article_data_copy = articles_data.__copy__()  # 复制一份数据留待后续操作
+        # 对日期数据进行预处理
+        article_data_copy["release_time"] = article_data_copy["release_time"].apply(lambda x: f"{datetime.fromisoformat(x).hour}:00:00")
+        article_data_copy["release_time"] = pd_to_datetime(article_data_copy["release_time"], format="%H:%M:%S")
+        article_data_copy.set_index("release_time", inplace=True)  # 将发布时间设为索引
+        data = dict(article_data_copy.resample("H").count()["aid"])  # 将时间数据按小时分组并转化成字典
+        data = {key.hour: value for key, value in data.items()}  # 将数据转换为字典，键为时间，值为发布文章数
+        # 补全缺失的时间数据
+        for time in range(0, 24):
+            if not data.get(time):
+                data[time] = 0
+        # 对数据进行排序
+        data = list(data.items())
+        data = sorted(data, key=lambda x: x[0])
+        data = dict(data)
+        # 转换数据集格式
+        data = go.Scatter(x=tuple(data.keys()), y=tuple(data.values()))
+        # 生成图表
+        graph_obj = go.Figure(data=data, layout={"title": "发文时间分布",
+                                                 "xaxis": {"title": "小时"},
+                                                 "yaxis": {"title": "发布文章数"}})
+        put_image(graph_obj.to_image(format="png", scale=2.5))
 
     yield None
 

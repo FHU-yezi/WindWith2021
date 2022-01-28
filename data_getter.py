@@ -1,11 +1,13 @@
 from collections import Counter
 from datetime import datetime
 from os import mkdir, path
+from sys import platform as sys_platform
 from threading import Thread
 from time import sleep
 from typing import Dict, List
 
 import jieba
+import jieba.posseg as pseg
 from JianshuResearchTools.article import GetArticleText, GetArticleWordage
 from JianshuResearchTools.convert import (ArticleSlugToArticleUrl,
                                           UserUrlToUserSlug)
@@ -15,7 +17,6 @@ from JianshuResearchTools.user import (GetUserAllArticlesInfo,
 from pandas import DataFrame
 from wordcloud import WordCloud
 from yaml import dump as yaml_dump
-from sys import platform as sys_platform
 
 from exceptions import QueueEmptyException
 from log_service import AddRunLog
@@ -37,16 +38,22 @@ AddRunLog(4, "加载热点词成功")
 
 
 def GetUserArticleData(user_url: str) -> DataFrame:
-    result = []
+    result = DataFrame()
+    start_time = datetime(2021, 1, 1, 0, 0, 0)
+    end_time = datetime(2021, 12, 31, 23, 59, 59)
     for item in GetUserAllArticlesInfo(user_url, count=50):  # 增加单次请求量，提高性能
-        if item["release_time"].replace(tzinfo=None) >= datetime(2021, 1, 1, 0, 0, 0) and not item["is_top"]:
+        item_release_time = item["release_time"].replace(tzinfo=None)
+        if item_release_time > end_time:  # 文章发布时间晚于 2021 年
+            pass  # 文章是按照时间倒序排列的，此时不做任何处理
+        elif item_release_time < start_time:  # 文章发布时间早于 2021 年
+            if item["is_top"]:  # 置顶文章
+                pass  # 置顶文章永远排在最前面，此时不做任何处理
+            else:  # 非置顶文章
+                break  # 非置顶文章的发布时间早于 2021 年，则不再继续查询
+        else:  # 文章发布时间在 2021 年内
             item["wordage"] = GetArticleWordage(ArticleSlugToArticleUrl(item["aslug"]), disable_check=True)
-            result.append(item)
-        elif item["is_top"]:  # 置顶文章发布时间早于 2021 年
-            pass
-        else:  # 非置顶文章发布时间早于 2021 年
-            break
-    return DataFrame(result)
+            result = result.append(item, ignore_index=True, sort=False)  # 将新的文章追加到 DataFrame 中
+    return result
 
 
 def GetUserBasicData(user_url: str) -> Dict:
@@ -80,14 +87,20 @@ def GetUserBasicData(user_url: str) -> Dict:
 
 
 def GetWordcloud(articles_list: List[str], user_slug: str) -> None:
+    allow_word_types = ("Ag", "a", "ad", "an", "dg", "g",
+                        "i", "j", "l", "Ng", "n", "nr",
+                        "ns", "nt", "nz", "tg", "vg", "v",
+                        "vd", "vn", "un")
     words_count: Counter = Counter()
     for article_url in articles_list:
-        cutted_text = jieba.cut(GetArticleText(article_url, disable_check=True))
-        cutted_text = (word for word in cutted_text if len(word) > 1 and word not in STOPWORDS)
+        cutted_text = pseg.cut(GetArticleText(article_url, disable_check=True))
+        # 只保留非单字词，且这些词必须不在停用词列表里，并属于特定词性
+        cutted_text = (x.word for x in cutted_text if len(x.word) > 1
+                       and x.flag in allow_word_types and x.word not in STOPWORDS)
         words_count += Counter(cutted_text)
     wordcloud = WordCloud(font_path="wordcloud_assets/font.otf", width=1280, height=720,
                           background_color="white", max_words=100)
-    # 筛选出现五次以上的词
+    # 筛选出现十次以上的词
     img = wordcloud.generate_from_frequencies({key: value for key, value in words_count.items() if value > 10})
     img.to_file(f"user_data/{user_slug}/wordcloud_{user_slug}.png")
 
