@@ -1,11 +1,13 @@
 from collections import Counter
 from datetime import datetime
 from os import mkdir, path
+from sys import platform as sys_platform
 from threading import Thread
 from time import sleep
 from typing import Dict, List
 
 import jieba
+import jieba.posseg as pseg
 from JianshuResearchTools.article import GetArticleText, GetArticleWordage
 from JianshuResearchTools.convert import (ArticleSlugToArticleUrl,
                                           UserUrlToUserSlug)
@@ -15,7 +17,6 @@ from JianshuResearchTools.user import (GetUserAllArticlesInfo,
 from pandas import DataFrame
 from wordcloud import WordCloud
 from yaml import dump as yaml_dump
-from sys import platform as sys_platform
 
 from exceptions import QueueEmptyException
 from log_service import AddRunLog
@@ -86,10 +87,16 @@ def GetUserBasicData(user_url: str) -> Dict:
 
 
 def GetWordcloud(articles_list: List[str], user_slug: str) -> None:
+    allow_word_types = ("Ag", "a", "ad", "an", "dg", "g",
+                        "i", "j", "l", "Ng", "n", "nr",
+                        "ns", "nt", "nz", "tg", "vg", "v",
+                        "vd", "vn", "un")
     words_count: Counter = Counter()
     for article_url in articles_list:
-        cutted_text = jieba.cut(GetArticleText(article_url, disable_check=True))
-        cutted_text = (word for word in cutted_text if len(word) > 1 and word not in STOPWORDS)
+        cutted_text = pseg.cut(GetArticleText(article_url, disable_check=True))
+        # 只保留非单字词，且这些词必须不在停用词列表里，并属于特定词性
+        cutted_text = (x.word for x in cutted_text if len(x.word) > 1
+                       and x.flag in allow_word_types and x.word not in STOPWORDS)
         words_count += Counter(cutted_text)
     wordcloud = WordCloud(font_path="wordcloud_assets/font.otf", width=1280, height=720,
                           background_color="white", max_words=100)
