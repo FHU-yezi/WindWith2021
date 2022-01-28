@@ -38,7 +38,7 @@ AddRunLog(4, "加载热点词成功")
 
 
 def GetUserArticleData(user_url: str) -> DataFrame:
-    result = []
+    result = DataFrame()
     start_time = datetime(2021, 1, 1, 0, 0, 0)
     end_time = datetime(2021, 12, 31, 23, 59, 59)
     for item in GetUserAllArticlesInfo(user_url, count=50):  # 增加单次请求量，提高性能
@@ -52,8 +52,8 @@ def GetUserArticleData(user_url: str) -> DataFrame:
                 break  # 非置顶文章的发布时间早于 2021 年，则不再继续查询
         else:  # 文章发布时间在 2021 年内
             item["wordage"] = GetArticleWordage(ArticleSlugToArticleUrl(item["aslug"]), disable_check=True)
-            result.append(item)
-    return DataFrame(result)
+            result = result.append(item, ignore_index=True, sort=False)  # 将新的文章追加到 DataFrame 中
+    return result
 
 
 def GetUserBasicData(user_url: str) -> Dict:
