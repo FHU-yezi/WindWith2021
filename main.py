@@ -9,8 +9,7 @@ from web_modules.join_queue import JoinQueue
 from web_modules.utils import GetUrl, SetFooter
 from web_modules.view_summary import ViewSummary
 
-__version__ = "0.6.0"
-AddRunLog(3, f"版本号：{__version__}")
+AddRunLog(3, f"版本号：{Config()['basic_data/version']}")
 
 
 data_getter_init()  # 初始化数据获取线程
