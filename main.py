@@ -49,7 +49,7 @@ def index():
 
     put_link("查看年终总结", url=f"{GetUrl()}?app=ViewSummary")
 
-    SetFooter(f"Version：{__version__} Made with PyWebIO and ♥")
+    SetFooter(f"Version：{Config()['basic_data/version']} {Config()['basic_data/footer_content']}")
 
 
 AddRunLog(3, "启动服务......")
