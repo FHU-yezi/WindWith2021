@@ -5,7 +5,7 @@ from yaml import SafeLoader
 from yaml import load as yaml_load
 
 from config_manager import Config
-from db_config import UserQueue
+from db_config import User
 from exceptions import (QueueEmptyException, QueueFullException,
                         UserAlreadyExistsException, UserBannedException,
                         UserDataDoesNotReadyException,
@@ -16,7 +16,7 @@ MAX_QUEUE_LENGTH = 100
 
 banned_list = [x for x in yaml_load(open("banned.yaml", "r"), Loader=SafeLoader)]
 
-queue_length = UserQueue.select().where(UserQueue.status == 1).count()  # 获取排队中用户数量
+queue_length = User.select().where(User.status == 1).count()  # 获取排队中用户数量
 
 
 def AddToQueue(user_url: str, user_name: str) -> None:
@@ -28,7 +28,7 @@ def AddToQueue(user_url: str, user_name: str) -> None:
     if queue_length + 1 > MAX_QUEUE_LENGTH:  # 如果队列已满
         raise QueueFullException("队列已满，请稍后再试")
     try:
-        UserQueue.create(user_url=user_url, user_name=user_name, status=1, add_time=datetime.now())
+        User.create(user_url=user_url, user_name=user_name, status=1, add_time=datetime.now())
     except DatabaseError:  # 主键是 user_url，出错意味着用户已存在
         raise UserAlreadyExistsException(f"用户 {user_url} 已存在")
     else:
@@ -39,11 +39,11 @@ def GetQueueLength() -> int:
     return queue_length
 
 
-def GetOneToProcess() -> UserQueue:
+def GetOneToProcess() -> User:
     global queue_length
     if queue_length == 0:
         raise QueueEmptyException("队列已空")
-    user = UserQueue.select().where(UserQueue.status == 1).order_by(UserQueue.add_time).get()
+    user = User.select().where(User.status == 1).order_by(User.add_time).get()
     user.status = 2
     user.start_process_time = datetime.now()
     user.save()
@@ -53,7 +53,7 @@ def GetOneToProcess() -> UserQueue:
 
 def ProcessFinished(user_url: str) -> None:
     try:
-        user = UserQueue.select().where(UserQueue.user_url == user_url).get()
+        user = User.select().where(User.user_url == user_url).get()
     except Exception:  # 用户不存在
         raise UserDoesNotExistException(f"用户 {user_url} 不存在")
     else:
@@ -62,9 +62,9 @@ def ProcessFinished(user_url: str) -> None:
         user.save()
 
 
-def GetOneToShowSummary(user_url: str) -> UserQueue:
+def GetOneToShowSummary(user_url: str) -> User:
     try:
-        user = UserQueue.select().where(UserQueue.user_url == user_url).get()
+        user = User.select().where(User.user_url == user_url).get()
     except Exception:  # 用户不存在
         raise UserDoesNotExistException(f"用户 {user_url} 不存在")
     else:
