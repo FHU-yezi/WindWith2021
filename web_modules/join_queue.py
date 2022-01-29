@@ -5,7 +5,7 @@ from JianshuResearchTools.assert_funcs import (AssertUserStatusNormal,
                                                AssertUserUrl)
 from JianshuResearchTools.exceptions import InputError, ResourceError
 from JianshuResearchTools.user import GetUserName
-from log_service import AddRunLog
+from log_manager import AddRunLog
 from pywebio.input import TEXT
 from pywebio.output import (put_button, put_link, put_markdown, put_text,
                             toast, use_scope)

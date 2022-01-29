@@ -10,7 +10,7 @@ from exceptions import (QueueEmptyException, QueueFullException,
                         UserAlreadyExistsException, UserBannedException,
                         UserDataDoesNotReadyException,
                         UserDoesNotExistException)
-from log_service import AddRunLog
+from log_manager import AddRunLog
 
 MAX_QUEUE_LENGTH = 100
 

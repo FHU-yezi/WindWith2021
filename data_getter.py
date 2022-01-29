@@ -20,7 +20,7 @@ from yaml import dump as yaml_dump
 from config_manager import Config
 
 from exceptions import QueueEmptyException
-from log_service import AddRunLog
+from log_manager import AddRunLog
 from queue_manager import GetOneToProcess, ProcessFinished
 
 jieba.setLogLevel(jieba.logging.ERROR)  # 关闭 jieba 的日志输出

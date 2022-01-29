@@ -4,7 +4,7 @@ from pywebio.session import info as session_info
 
 from config_manager import Config
 from data_getter import init as data_getter_init
-from log_service import AddRunLog, AddViewLog
+from log_manager import AddRunLog, AddViewLog
 from web_modules.join_queue import JoinQueue
 from web_modules.utils import GetUrl, SetFooter
 from web_modules.view_summary import ViewSummary

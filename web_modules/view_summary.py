@@ -10,7 +10,7 @@ from JianshuResearchTools.assert_funcs import (AssertUserStatusNormal,
 from JianshuResearchTools.convert import UserUrlToUserSlug
 from JianshuResearchTools.exceptions import InputError, ResourceError
 from JianshuResearchTools.user import GetUserName
-from log_service import AddRunLog
+from log_manager import AddRunLog
 from pandas import DataFrame, read_csv
 from pandas import to_datetime as pd_to_datetime
 from PIL.Image import open as OpenImage
