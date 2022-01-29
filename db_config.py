@@ -37,7 +37,7 @@ class ViewLog(Model):
 """
 
 
-class UserQueue(Model):
+class User(Model):
     user_url = CharField(primary_key=True)
     user_name = CharField()
     status = IntegerField()
@@ -48,12 +48,13 @@ class UserQueue(Model):
 
     class Meta:
         database = SqliteDatabase("userdata.db")
+        table_name = "user_queue"
 
 
 def InitDB():
     RunLog.create_table()
     ViewLog.create_table()
-    UserQueue.create_table()
+    User.create_table()
 
 
 InitDB()  # 导入模块时初始化数据库

@@ -4,3 +4,4 @@ __pycache__/
 user_data/
 *.db
 *.otf
+config.yaml

@@ -2,14 +2,14 @@ from pywebio import start_server
 from pywebio.output import put_link, put_markdown
 from pywebio.session import info as session_info
 
+from config_manager import Config
 from data_getter import init as data_getter_init
-from log_service import AddRunLog, AddViewLog
+from log_manager import AddRunLog, AddViewLog
 from web_modules.join_queue import JoinQueue
 from web_modules.utils import GetUrl, SetFooter
 from web_modules.view_summary import ViewSummary
 
-__version__ = "0.6.0"
-AddRunLog(3, f"版本号：{__version__}")
+AddRunLog(3, f"版本号：{Config()['basic_data/version']}")
 
 
 data_getter_init()  # 初始化数据获取线程
@@ -53,4 +53,4 @@ def index():
 
 
 AddRunLog(3, "启动服务......")
-start_server([JoinQueue, ViewSummary, index], port=8603)
+start_server([JoinQueue, ViewSummary, index], port=Config()["service/port"])

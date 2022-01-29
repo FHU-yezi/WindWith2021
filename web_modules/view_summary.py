@@ -1,14 +1,16 @@
 from datetime import datetime
+from os import path as os_path
 from typing import Dict
 
 import plotly.graph_objs as go
+from config_manager import Config
 from exceptions import UserDataDoesNotReadyException, UserDoesNotExistException
 from JianshuResearchTools.assert_funcs import (AssertUserStatusNormal,
                                                AssertUserUrl)
 from JianshuResearchTools.convert import UserUrlToUserSlug
 from JianshuResearchTools.exceptions import InputError, ResourceError
 from JianshuResearchTools.user import GetUserName
-from log_service import AddRunLog
+from log_manager import AddRunLog
 from pandas import DataFrame, read_csv
 from pandas import to_datetime as pd_to_datetime
 from PIL.Image import open as OpenImage
@@ -28,7 +30,7 @@ with open("badge_to_type.yaml", "r", encoding="utf-8") as f:
     AddRunLog(4, "初始化徽章类型表成功")
 
 
-def ShowSummary(basic_data: Dict, articles_data: DataFrame, wordcloud_path: str):
+def ShowSummary(basic_data: Dict, articles_data: DataFrame, wordcloud_pic_path: str):
     AddRunLog(3, f"开始展示 {basic_data['url']}（{basic_data['name']}）的年度总结")
     with use_scope("output"):
         put_text("四季更替，星河流转，2021 是一个充满生机与挑战的年份。")
@@ -174,6 +176,33 @@ def ShowSummary(basic_data: Dict, articles_data: DataFrame, wordcloud_path: str)
     yield None
 
     with use_scope("output"):
+        put_text("这是你的互动量趋势：")
+
+        with put_loading():
+            # 构建文章数据中已有月份的数据
+            likes_data = dict(zip(range(1, 13), articles_data.groupby("month").sum()["likes_count"]))
+            comments_data = dict(zip(range(1, 13), articles_data.groupby("month").sum()["comments_count"]))
+            rewards_data = dict(zip(range(1, 13), articles_data.groupby("month").sum()["rewards_count"]))
+            # 用 0 填充缺失的月份数据
+            datas = [likes_data, comments_data, rewards_data]
+            for data in datas:
+                for month in range(1, 13):
+                    if not data.get(month):
+                        data[month] = 0
+            # 转换数据集格式
+            datas_name = ("点赞数", "评论数", "打赏数")
+            for index, data in enumerate(datas):
+                data_name = datas_name[index]
+                datas[index] = go.Scatter(x=tuple(data.keys()), y=tuple(data.values()), name=data_name)
+            # 生成图表
+            graph_obj = go.Figure(data=datas, layout={"title": "文章互动量趋势",
+                                                      "xaxis": {"title": "月份"},
+                                                      "yaxis": {"title": "互动量"}})
+            put_image(graph_obj.to_image(format="png", scale=2.5))
+
+    yield None
+
+    with use_scope("output"):
         put_text("你在哪个时间段发布文章最多呢？")
         article_data_copy = articles_data.__copy__()  # 复制一份数据留待后续操作
         # 对日期数据进行预处理
@@ -207,7 +236,9 @@ def ShowSummary(basic_data: Dict, articles_data: DataFrame, wordcloud_path: str)
         else:
             put_text("你貌似没有开通简书会员呢，全站去广告、发文数量上限提升等等特权，了解一下？")
         put_text("\n")
+
     yield None
+
     with use_scope("output"):
         if basic_data['badges_list']:
             put_text(f"你拥有 {len(basic_data['badges_list'])} 枚徽章：")
@@ -216,30 +247,38 @@ def ShowSummary(basic_data: Dict, articles_data: DataFrame, wordcloud_path: str)
             put_text("什么？你还没有徽章？为何不多写点文章申请个创作者，或者去做岛主？")
             put_text("搞点东西装饰一下你的个人主页，何乐而不为呢？")
         put_text("\n")
+
     yield None
+
     with use_scope("output"):
         put_text(f"知道 {basic_data['next_anniversary_day'].strftime(r'%Y 年 %m 月 %d 日')}是什么日子吗？")
         put_text("是你来简书的周年纪念日哦！到时候要不要发篇文章说说自己的感想？")
         put_text("\n")
+
     yield None
+
     with use_scope("output"):
         put_text("你的年度热词是什么呢？看看这张词云图吧：")
         with put_loading():
-            put_image(OpenImage(wordcloud_path), format="png")
+            put_image(OpenImage(wordcloud_pic_path), format="png")
         put_text("\n")
 
     yield None
+
     with use_scope("output"):
         put_text(f"在大家面前，你的名字是{basic_data['name']}，而在简书的数据库中，你的代号是 {basic_data['id']}。")
         put_text("技术，无限可能，正如你面前的这份年终总结一样。")
         put_text("虽然它在背后，但你的每一份创作体验，都少不了万千技术工作者的默默付出。")
         put_text("\n")
+
     yield None
+
     with use_scope("output"):
         put_text("这是，属于你的创作总结；")
         put_text("这是，属于你的一年；")
         put_text("这是，属于你的简书社区。")
         put_text("\n")
+
     yield None
 
     with use_scope("output"):
@@ -247,16 +286,21 @@ def ShowSummary(basic_data: Dict, articles_data: DataFrame, wordcloud_path: str)
         put_text("愿每一名创作者，都能找到自己的价值；")
         put_text("愿每一份不甘，都有温暖相伴。")
         put_text("\n")
+
     yield None
+
     with use_scope("output"):
         put_text("我们是简友，我们在简书等你。")
         put_text("\n")
+
     yield None
+
     with use_scope("output"):
         put_text("年终总结，完。")
         put_text("2022，启航！")
 
     clear("continue_button_area")  # 移除继续按钮
+    AddRunLog(3, f"{basic_data['url']}（{basic_data['name']}）的年度总结展示完毕")
     exit()
 
 
@@ -298,17 +342,38 @@ def GetAllData() -> None:
     else:
         AddRunLog(4, f"{user_url}（{user_name}）的数据已就绪")
         user_slug = UserUrlToUserSlug(user_url)
-        with open(f"user_data/{user_slug}/basic_data_{user_slug}.yaml", "r", encoding="utf-8") as f:
+
+        basic_data_path = f"user_data/{user_slug}/basic_data_{user_slug}.yaml"
+        articles_data_path = f"user_data/{user_slug}/article_data_{user_slug}.csv"
+        wordcloud_pic_path = f"user_data/{user_slug}/wordcloud_{user_slug}.png"
+
+        if not os_path.exists(articles_data_path):  # 没有文章数据
+            articles_data_path = None
+        if not os_path.exists(wordcloud_pic_path):  # 没有词云图
+            wordcloud_pic_path = None
+
+        if not articles_data_path and not wordcloud_pic_path:
+            clear("data_input")  # 清空数据输入区
+            with use_scope("output"):
+                put_text("抱歉，目前我们暂时不支持对 2021 年没有发布过文章的用户生成年度总结。")
+            AddRunLog(2, f"{user_url}（{user_name}）由于没有发布过文章，暂时不支持生成年度总结")
+            exit()
+
+        with open(basic_data_path, "r", encoding="utf-8") as f:
             basic_data = yaml_load(f, SafeLoader)
         AddRunLog(4, f"成功加载 {user_url}（{user_name}）的基础数据")
-        with open(f"user_data/{user_slug}/article_data_{user_slug}.csv", "r", encoding="utf-8") as f:
-            article_data = read_csv(f)
+
+        with open(articles_data_path, "r", encoding="utf-8") as f:
+            articles_data = read_csv(f)
         AddRunLog(4, f"成功加载 {user_url}（{user_name}）的文章数据")
+
         clear("data_input")  # 清空数据输入区
         SetLocalStorage("user_url", user_url)  # 将用户链接保存到本地
         with use_scope("output"):  # 初始化输出区
             pass
-        show_summary_obj = ShowSummary(basic_data, article_data, f"user_data/{user_slug}/wordcloud_{user_slug}.png")
+
+
+        show_summary_obj = ShowSummary(basic_data, articles_data, wordcloud_pic_path)
         with use_scope("continue_button_area"):
             put_buttons([dict(label="继续", value="continue", color="dark")],
                         outline=True, onclick=lambda _: next(show_summary_obj), serial_mode=True)
@@ -323,4 +388,4 @@ def ViewSummary():
         put_input("user_url", type=TEXT, value=user_url, label="您的简书用户主页链接")
         put_button("提交", color="success", onclick=GetAllData)
 
-    SetFooter("Made with PyWebIO and ♥")
+    SetFooter(Config()["basic_data/footer_content"])
