@@ -7,11 +7,12 @@ from JianshuResearchTools.exceptions import InputError, ResourceError
 from JianshuResearchTools.user import GetUserName
 from log_service import AddRunLog
 from pywebio.input import TEXT
-from pywebio.output import put_button, put_markdown, put_text, toast, use_scope
+from pywebio.output import (put_button, put_link, put_markdown, put_text,
+                            toast, use_scope)
 from pywebio.pin import pin, put_input
 from queue_manager import AddToQueue
 
-from .utils import GetLocalStorage, SetFooter, SetLocalStorage
+from .utils import GetLocalStorage, GetUrl, SetFooter, SetLocalStorage
 
 
 def JoinQueueAction():
@@ -62,6 +63,7 @@ def JoinQueueAction():
         with use_scope("submit_button", clear=True):
             put_button("提交", color="success", disabled=True, onclick=JoinQueueAction)  # 禁用按钮，防止用户重复点击
         put_text(f"{user_name}，您已成功加入队列，请耐心等待。")
+        put_link("点击前往您的年度总结", url=f"{GetUrl().replace('?app=JoinQueue', '')}?app=ViewSummary")
 
 
 def JoinQueue():
