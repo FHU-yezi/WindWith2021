@@ -174,6 +174,34 @@ def ShowSummary(basic_data: Dict, articles_data: DataFrame, wordcloud_path: str)
     yield None
 
     with use_scope("output"):
+        put_text("这是你的互动量趋势：")
+
+        with put_loading():
+            # 构建文章数据中已有月份的数据
+            likes_data = dict(zip(range(1, 13), articles_data.groupby("month").sum()["likes_count"]))
+            comments_data = dict(zip(range(1, 13), articles_data.groupby("month").sum()["comments_count"]))
+            rewards_data = dict(zip(range(1, 13), articles_data.groupby("month").sum()["rewards_count"]))
+            # 用 0 填充缺失的月份数据
+            datas = [likes_data, comments_data, rewards_data]
+            for data in datas:
+                for month in range(1, 13):
+                    if not data.get(month):
+                        data[month] = 0
+            # 转换数据集格式
+            datas_name = ("点赞数", "评论数", "打赏数")
+            for index, data in enumerate(datas):
+                data_name = datas_name[index]
+                datas[index] = go.Scatter(x=tuple(data.keys()), y=tuple(data.values()), name=data_name)
+            # 生成图表
+            graph_obj = go.Figure(data=datas, layout={"title": "文章互动量趋势",
+                                                      "xaxis": {"title": "月份"},
+                                                      "yaxis": {"title": "互动量"}})
+            put_image(graph_obj.to_image(format="png", scale=2.5))
+
+
+    yield None
+
+    with use_scope("output"):
         put_text("你在哪个时间段发布文章最多呢？")
         article_data_copy = articles_data.__copy__()  # 复制一份数据留待后续操作
         # 对日期数据进行预处理
