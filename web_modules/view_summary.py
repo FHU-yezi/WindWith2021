@@ -1,4 +1,5 @@
 from datetime import datetime
+from os import path as os_path
 from typing import Dict
 
 import plotly.graph_objs as go
@@ -29,7 +30,7 @@ with open("badge_to_type.yaml", "r", encoding="utf-8") as f:
     AddRunLog(4, "初始化徽章类型表成功")
 
 
-def ShowSummary(basic_data: Dict, articles_data: DataFrame, wordcloud_path: str):
+def ShowSummary(basic_data: Dict, articles_data: DataFrame, wordcloud_pic_path: str):
     AddRunLog(3, f"开始展示 {basic_data['url']}（{basic_data['name']}）的年度总结")
     with use_scope("output"):
         put_text("四季更替，星河流转，2021 是一个充满生机与挑战的年份。")
@@ -199,7 +200,6 @@ def ShowSummary(basic_data: Dict, articles_data: DataFrame, wordcloud_path: str)
                                                       "yaxis": {"title": "互动量"}})
             put_image(graph_obj.to_image(format="png", scale=2.5))
 
-
     yield None
 
     with use_scope("output"):
@@ -254,7 +254,7 @@ def ShowSummary(basic_data: Dict, articles_data: DataFrame, wordcloud_path: str)
     with use_scope("output"):
         put_text("你的年度热词是什么呢？看看这张词云图吧：")
         with put_loading():
-            put_image(OpenImage(wordcloud_path), format="png")
+            put_image(OpenImage(wordcloud_pic_path), format="png")
         put_text("\n")
 
     yield None
@@ -327,17 +327,38 @@ def GetAllData() -> None:
     else:
         AddRunLog(4, f"{user_url}（{user_name}）的数据已就绪")
         user_slug = UserUrlToUserSlug(user_url)
-        with open(f"user_data/{user_slug}/basic_data_{user_slug}.yaml", "r", encoding="utf-8") as f:
+
+        basic_data_path = f"user_data/{user_slug}/basic_data_{user_slug}.yaml"
+        articles_data_path = f"user_data/{user_slug}/article_data_{user_slug}.csv"
+        wordcloud_pic_path = f"user_data/{user_slug}/wordcloud_{user_slug}.png"
+
+        if not os_path.exists(articles_data_path):  # 没有文章数据
+            articles_data_path = None
+        if not os_path.exists(wordcloud_pic_path):  # 没有词云图
+            wordcloud_pic_path = None
+
+        if not articles_data_path and not wordcloud_pic_path:
+            clear("data_input")  # 清空数据输入区
+            with use_scope("output"):
+                put_text("抱歉，目前我们暂时不支持对 2021 年没有发布过文章的用户生成年度总结。")
+            AddRunLog(2, f"{user_url}（{user_name}）由于没有发布过文章，暂时不支持生成年度总结")
+            exit()
+
+        with open(basic_data_path, "r", encoding="utf-8") as f:
             basic_data = yaml_load(f, SafeLoader)
         AddRunLog(4, f"成功加载 {user_url}（{user_name}）的基础数据")
-        with open(f"user_data/{user_slug}/article_data_{user_slug}.csv", "r", encoding="utf-8") as f:
-            article_data = read_csv(f)
+
+        with open(articles_data_path, "r", encoding="utf-8") as f:
+            articles_data = read_csv(f)
         AddRunLog(4, f"成功加载 {user_url}（{user_name}）的文章数据")
+
         clear("data_input")  # 清空数据输入区
         SetLocalStorage("user_url", user_url)  # 将用户链接保存到本地
         with use_scope("output"):  # 初始化输出区
             pass
-        show_summary_obj = ShowSummary(basic_data, article_data, f"user_data/{user_slug}/wordcloud_{user_slug}.png")
+
+
+        show_summary_obj = ShowSummary(basic_data, articles_data, wordcloud_pic_path)
         with use_scope("continue_button_area"):
             put_buttons([dict(label="继续", value="continue", color="dark")],
                         outline=True, onclick=lambda _: next(show_summary_obj), serial_mode=True)

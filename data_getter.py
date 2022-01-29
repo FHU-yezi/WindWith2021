@@ -133,12 +133,18 @@ def main():
 
         AddRunLog(4, f"开始获取 {user.user_url}（{user.user_name}）的文章数据")
         article_data = GetUserArticleData(user.user_url)
-        article_data.to_csv(f"user_data/{user_slug}/article_data_{user_slug}.csv", index=False)
-        AddRunLog(4, f"获取 {user.user_url}（{user.user_name}）的文章数据完成，共 {len(article_data)} 条")
+        if len(article_data) != 0:
+            article_data.to_csv(f"user_data/{user_slug}/article_data_{user_slug}.csv", index=False)
+            AddRunLog(4, f"获取 {user.user_url}（{user.user_name}）的文章数据完成，共 {len(article_data)} 条")
+        else:
+            AddRunLog(2, f"{user.user_url}（{user.user_name}）没有在 2021 年发布文章，未保存他的文章数据文件")
 
-        AddRunLog(4, f"开始为 {user.user_url}（{user.user_name}）生成词云图")
-        GetWordcloud((ArticleSlugToArticleUrl(x) for x in list(article_data["aslug"])), user_slug)
-        AddRunLog(4, f"为 {user.user_url}（{user.user_name}）生成词云图完成")
+        if len(article_data) != 0:  # 用户没有在 2021 年发布文章
+            AddRunLog(4, f"开始为 {user.user_url}（{user.user_name}）生成词云图")
+            GetWordcloud((ArticleSlugToArticleUrl(x) for x in list(article_data["aslug"])), user_slug)
+            AddRunLog(4, f"为 {user.user_url}（{user.user_name}）生成词云图完成")
+        else:
+            AddRunLog(2, f"{user.user_url}（{user.user_name}）没有在 2021 年发布文章，跳过词云生成")
 
         ProcessFinished(user.user_url)  # 如果数据获取完整，就将用户状态改为 3，表示已完成数据获取
         AddRunLog(3, f"数据获取任务执行完毕，user_slug：{user_slug}")
