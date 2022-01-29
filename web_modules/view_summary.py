@@ -2,6 +2,7 @@ from datetime import datetime
 from typing import Dict
 
 import plotly.graph_objs as go
+from config_manager import Config
 from exceptions import UserDataDoesNotReadyException, UserDoesNotExistException
 from JianshuResearchTools.assert_funcs import (AssertUserStatusNormal,
                                                AssertUserUrl)
@@ -351,4 +352,4 @@ def ViewSummary():
         put_input("user_url", type=TEXT, value=user_url, label="您的简书用户主页链接")
         put_button("提交", color="success", onclick=GetAllData)
 
-    SetFooter("Made with PyWebIO and ♥")
+    SetFooter(Config()["basic_data/footer_content"])

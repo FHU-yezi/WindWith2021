@@ -17,7 +17,7 @@ _DEFAULT_CONFIG = {
         "print_log_level": 3
     },
     "auth": {
-        "enable_ban": True
+        "enable_banlist": True
     },
     "perf": {
         "enable_jieba_parallel": True
@@ -28,9 +28,7 @@ _DEFAULT_CONFIG = {
 class Config():
     def __new__(cls) -> "Config":
         # 单例模式
-        print(1)
         if not hasattr(cls, "_instance"):
-            print("创建新对象")
             cls._instance = object.__new__(cls)
         return cls._instance
 
@@ -49,3 +47,10 @@ class Config():
         for now_path in item_path:
             result = result[now_path]
         return result
+
+    def refresh(self):
+        self.__init__()
+
+
+def InitConfig():
+    Config()  # 初始化日志文件

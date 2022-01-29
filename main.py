@@ -2,6 +2,7 @@ from pywebio import start_server
 from pywebio.output import put_link, put_markdown
 from pywebio.session import info as session_info
 
+from config_manager import Config
 from data_getter import init as data_getter_init
 from log_service import AddRunLog, AddViewLog
 from web_modules.join_queue import JoinQueue
@@ -53,4 +54,4 @@ def index():
 
 
 AddRunLog(3, "启动服务......")
-start_server([JoinQueue, ViewSummary, index], port=8603)
+start_server([JoinQueue, ViewSummary, index], port=Config()["service/port"])

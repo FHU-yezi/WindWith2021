@@ -17,16 +17,19 @@ from JianshuResearchTools.user import (GetUserAllArticlesInfo,
 from pandas import DataFrame
 from wordcloud import WordCloud
 from yaml import dump as yaml_dump
+from config_manager import Config
 
 from exceptions import QueueEmptyException
 from log_service import AddRunLog
 from queue_manager import GetOneToProcess, ProcessFinished
 
 jieba.setLogLevel(jieba.logging.ERROR)  # 关闭 jieba 的日志输出
-if sys_platform != "win32":
+if sys_platform != "win32" and Config()["perf/enable_jieba_parallel"]:
     AddRunLog(3, "已开启多进程分词")
     jieba.enable_parallel(2)
-else:
+elif not Config()["perf/enable_jieba_parallel"]:
+    AddRunLog(2, "由于配置文件设置，多进程分词已禁用")
+elif sys_platform == "win32":
     AddRunLog(2, "由于当前系统不支持，多进程分词已禁用")
 
 with open("wordcloud_assets/stopwords.txt", "r", encoding="utf-8") as f:

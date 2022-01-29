@@ -1,20 +1,25 @@
-from db_config import RunLog, ViewLog
 from datetime import datetime
+
 from peewee import DatabaseError
 from pywebio.session import info
 
-"""
-日志等级定义：
-0：CRITICAL
-1：ERROR
-2：WARNING
-3：INFO
-4：DEBUG
-"""
+from config_manager import Config
+from db_config import RunLog, ViewLog
+
+
+LEVEL_INT_TO_TEXT = {
+    0: "CRITICAL",
+    1: "ERROR",
+    2: "WARNING",
+    3: "INFO",
+    4: "DEBUG"
+}
 
 
 def AddRunLog(level: int, message: str):
     RunLog.create(time=datetime.now(), level=level, message=message)
+    if Config()["debug/enable_debug"] and Config()["debug/print_log_level"] >= level:
+        print(f"[{datetime.now()}] [{LEVEL_INT_TO_TEXT[level]}] {message}")
 
 
 def AddViewLog(session_info: info, user_url: str = None):

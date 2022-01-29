@@ -1,3 +1,4 @@
+from config_manager import Config
 from exceptions import (QueueFullException, UserAlreadyExistsException,
                         UserBannedException)
 from JianshuResearchTools.assert_funcs import (AssertUserStatusNormal,
@@ -73,4 +74,4 @@ def JoinQueue():
     with use_scope("submit_button", clear=True):
         put_button("提交", color="success", onclick=JoinQueueAction)
 
-    SetFooter("Made with PyWebIO and ♥")
+    SetFooter(Config()["basic_data/footer_content"])
