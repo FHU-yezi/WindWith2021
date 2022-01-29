@@ -32,12 +32,18 @@ elif not Config()["perf/enable_jieba_parallel"]:
 elif sys_platform == "win32":
     AddRunLog(2, "由于当前系统不支持，多进程分词已禁用")
 
-with open("wordcloud_assets/stopwords.txt", "r", encoding="utf-8") as f:
-    STOPWORDS = [x.replace("\n", "") for x in f.readlines()]  # 预加载停用词词库
-AddRunLog(4, "加载停用词成功")
+if Config()["word_split/enable_stopwords"]:
+    with open("wordcloud_assets/stopwords.txt", "r", encoding="utf-8") as f:
+        STOPWORDS = [x.replace("\n", "") for x in f.readlines()]  # 预加载停用词词库
+    AddRunLog(4, "加载停用词成功")
+else:
+    AddRunLog(2, "由于配置文件设置，停用词功能已禁用")
 
-jieba.load_userdict("wordcloud_assets/hotwords.txt")  # 将热点词加入词库
-AddRunLog(4, "加载热点词成功")
+if Config()["word_split/enable_hotwords"]:
+    jieba.load_userdict("wordcloud_assets/hotwords.txt")  # 将热点词加入词库
+    AddRunLog(4, "加载热点词成功")
+else:
+    AddRunLog(2, "由于配置文件设置，热点词功能已禁用")
 
 
 def GetUserArticleData(user_url: str) -> DataFrame:

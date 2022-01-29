@@ -16,6 +16,10 @@ _DEFAULT_CONFIG = {
         "enable_debug": False,
         "print_log_level": 3
     },
+    "word_split": {
+        "enable_stopwords": True,
+        "enable_hotwords": True
+    },
     "auth": {
         "enable_banlist": True
     },
@@ -54,3 +58,6 @@ class Config():
 
 def InitConfig():
     Config()  # 初始化日志文件
+
+
+InitConfig()
