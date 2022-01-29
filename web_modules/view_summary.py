@@ -236,7 +236,9 @@ def ShowSummary(basic_data: Dict, articles_data: DataFrame, wordcloud_pic_path: 
         else:
             put_text("你貌似没有开通简书会员呢，全站去广告、发文数量上限提升等等特权，了解一下？")
         put_text("\n")
+
     yield None
+
     with use_scope("output"):
         if basic_data['badges_list']:
             put_text(f"你拥有 {len(basic_data['badges_list'])} 枚徽章：")
@@ -245,12 +247,16 @@ def ShowSummary(basic_data: Dict, articles_data: DataFrame, wordcloud_pic_path: 
             put_text("什么？你还没有徽章？为何不多写点文章申请个创作者，或者去做岛主？")
             put_text("搞点东西装饰一下你的个人主页，何乐而不为呢？")
         put_text("\n")
+
     yield None
+
     with use_scope("output"):
         put_text(f"知道 {basic_data['next_anniversary_day'].strftime(r'%Y 年 %m 月 %d 日')}是什么日子吗？")
         put_text("是你来简书的周年纪念日哦！到时候要不要发篇文章说说自己的感想？")
         put_text("\n")
+
     yield None
+
     with use_scope("output"):
         put_text("你的年度热词是什么呢？看看这张词云图吧：")
         with put_loading():
@@ -258,17 +264,21 @@ def ShowSummary(basic_data: Dict, articles_data: DataFrame, wordcloud_pic_path: 
         put_text("\n")
 
     yield None
+
     with use_scope("output"):
         put_text(f"在大家面前，你的名字是{basic_data['name']}，而在简书的数据库中，你的代号是 {basic_data['id']}。")
         put_text("技术，无限可能，正如你面前的这份年终总结一样。")
         put_text("虽然它在背后，但你的每一份创作体验，都少不了万千技术工作者的默默付出。")
         put_text("\n")
+
     yield None
+
     with use_scope("output"):
         put_text("这是，属于你的创作总结；")
         put_text("这是，属于你的一年；")
         put_text("这是，属于你的简书社区。")
         put_text("\n")
+
     yield None
 
     with use_scope("output"):
@@ -276,16 +286,21 @@ def ShowSummary(basic_data: Dict, articles_data: DataFrame, wordcloud_pic_path: 
         put_text("愿每一名创作者，都能找到自己的价值；")
         put_text("愿每一份不甘，都有温暖相伴。")
         put_text("\n")
+
     yield None
+
     with use_scope("output"):
         put_text("我们是简友，我们在简书等你。")
         put_text("\n")
+
     yield None
+
     with use_scope("output"):
         put_text("年终总结，完。")
         put_text("2022，启航！")
 
     clear("continue_button_area")  # 移除继续按钮
+    AddRunLog(3, f"{basic_data['url']}（{basic_data['name']}）的年度总结展示完毕")
     exit()
 
 
