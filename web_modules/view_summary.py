@@ -160,11 +160,15 @@ def ShowSummary(basic_data: Dict, articles_data: DataFrame, wordcloud_pic_path: 
 
         with put_loading():
             # 构建文章数据中已有月份的数据
-            data = dict(zip(range(1, 13), articles_data.groupby("month").count()["title"]))
+            data = dict(articles_data.groupby("month").count()["title"])
             # 用 0 填充缺失的月份数据
             for month in range(1, 13):
                 if not data.get(month):
                     data[month] = 0
+            # 对数据进行排序
+            data = list(data.items())
+            data = sorted(data, key=lambda x: x[0])
+            data = dict(data)
             # 转换数据集格式
             data = go.Scatter(x=tuple(data.keys()), y=tuple(data.values()))
             # 生成图表
@@ -180,15 +184,20 @@ def ShowSummary(basic_data: Dict, articles_data: DataFrame, wordcloud_pic_path: 
 
         with put_loading():
             # 构建文章数据中已有月份的数据
-            likes_data = dict(zip(range(1, 13), articles_data.groupby("month").sum()["likes_count"]))
-            comments_data = dict(zip(range(1, 13), articles_data.groupby("month").sum()["comments_count"]))
-            rewards_data = dict(zip(range(1, 13), articles_data.groupby("month").sum()["rewards_count"]))
+            likes_data = dict(articles_data.groupby("month").sum()["likes_count"])
+            comments_data = dict(articles_data.groupby("month").sum()["comments_count"])
+            rewards_data = dict(articles_data.groupby("month").sum()["rewards_count"])
             # 用 0 填充缺失的月份数据
             datas = [likes_data, comments_data, rewards_data]
             for data in datas:
                 for month in range(1, 13):
                     if not data.get(month):
                         data[month] = 0
+            # 对数据进行排序
+            for index, data in enumerate(datas):
+                data = list(data.items())
+                data = sorted(data, key=lambda x: x[0])
+                datas[index] = dict(data)
             # 转换数据集格式
             datas_name = ("点赞数", "评论数", "打赏数")
             for index, data in enumerate(datas):
