@@ -23,6 +23,12 @@ _DEFAULT_CONFIG = {
     "auth": {
         "enable_banlist": True
     },
+    "message": {
+      "enable_message_sender": True,
+      "app_id": "",
+      "app_secret": "",
+      "email": ""
+    },
     "perf": {
         "enable_jieba_parallel": True
     }

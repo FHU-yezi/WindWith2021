@@ -157,5 +157,5 @@ def main():
 
 
 def init():
-    main_thread = Thread(target=main, daemon=True)  # 设置为守护线程，避免造成主线程无法退出
-    main_thread.start()
+    data_getter_thread = Thread(target=main, daemon=True)  # 设置为守护线程，避免造成主线程无法退出
+    data_getter_thread.start()
