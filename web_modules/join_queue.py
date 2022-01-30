@@ -5,11 +5,12 @@ from JianshuResearchTools.assert_funcs import (AssertUserStatusNormal,
                                                AssertUserUrl)
 from JianshuResearchTools.exceptions import InputError, ResourceError
 from JianshuResearchTools.user import GetUserName
-from log_manager import AddRunLog
+from log_manager import AddRunLog, AddViewLog
 from pywebio.input import TEXT
 from pywebio.output import (put_button, put_link, put_markdown, put_text,
                             toast, use_scope)
 from pywebio.pin import pin, put_input
+from pywebio.session import info as session_info
 from queue_manager import AddToQueue
 
 from .utils import GetLocalStorage, GetUrl, SetFooter, SetLocalStorage
@@ -69,6 +70,7 @@ def JoinQueueAction():
 def JoinQueue():
     """加入队列 ——「风语」
     """
+    AddViewLog(session_info, user_url=GetLocalStorage("user_url"), page_name="排队")
 
     put_markdown("# 加入队列 ——「风语」")
     put_input("user_url", type=TEXT, label="您的简书用户主页链接",

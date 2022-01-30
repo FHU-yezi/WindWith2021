@@ -10,7 +10,7 @@ from JianshuResearchTools.assert_funcs import (AssertUserStatusNormal,
 from JianshuResearchTools.convert import UserUrlToUserSlug
 from JianshuResearchTools.exceptions import InputError, ResourceError
 from JianshuResearchTools.user import GetUserName
-from log_manager import AddRunLog
+from log_manager import AddRunLog, AddViewLog
 from pandas import DataFrame, read_csv
 from pandas import to_datetime as pd_to_datetime
 from PIL.Image import open as OpenImage
@@ -19,6 +19,7 @@ from pywebio.output import (clear, put_button, put_buttons, put_image,
                             put_link, put_loading, put_table, put_text, toast,
                             use_scope)
 from pywebio.pin import pin, put_input
+from pywebio.session import info as session_info
 from queue_manager import GetOneToShowSummary
 from yaml import SafeLoader
 from yaml import load as yaml_load
@@ -392,6 +393,8 @@ def ViewSummary():
     """我的简书 2021 年终总结 ——「风语」
     """
     user_url = GetLocalStorage("user_url")
+    AddViewLog(session_info, user_url, "查看年度总结")
+
     AddRunLog(4, f"获取到用户本地存储的数据为：{user_url}")
     with use_scope("data_input", clear=True):
         put_input("user_url", type=TEXT, value=user_url, label="您的简书用户主页链接")

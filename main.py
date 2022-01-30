@@ -8,7 +8,7 @@ from log_manager import AddRunLog, AddViewLog
 from message_sender import init as message_send_init
 from status_monitor import init as status_monitor_init
 from web_modules.join_queue import JoinQueue
-from web_modules.utils import GetUrl, SetFooter
+from web_modules.utils import GetLocalStorage, GetUrl, SetFooter
 from web_modules.view_summary import ViewSummary
 
 AddRunLog(3, f"版本号：{Config()['basic_data/version']}")
@@ -39,7 +39,7 @@ def index():
 
     这是我第一次开发这种项目，如果有不完美，请大家多多包涵。
     """)
-    AddViewLog(session_info)
+    AddViewLog(session_info, user_url=GetLocalStorage("user_url"), page_name="主页")
 
     put_markdown("""
     # 排队

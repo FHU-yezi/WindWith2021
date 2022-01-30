@@ -15,7 +15,8 @@ class RunLog(Model):
 class ViewLog(Model):
     id = IntegerField(primary_key=True)
     time = DateTimeField()
-    user_url = CharField(null=True)  # 可以为空
+    user_url = CharField(null=True)
+    page_name = CharField(null=True)
     is_mobile = BooleanField()
     is_tablet = BooleanField()
     is_pc = BooleanField()
