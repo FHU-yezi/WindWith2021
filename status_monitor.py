@@ -12,11 +12,11 @@ from message_sender import SendErrorMessage, SendWarningMessage
 
 
 def GetMemoryPercent():
-    return virtual_memory().percent / 100
+    return round(virtual_memory().percent / 100, 2)
 
 
 def GetDiskPercent():
-    return disk_usage('/').percent / 100
+    return round(disk_usage('/').percent / 100, 2)
 
 
 def GetUserToProcessCount():
