@@ -6,6 +6,7 @@ from config_manager import Config
 from data_getter import init as data_getter_init
 from log_manager import AddRunLog, AddViewLog
 from message_sender import init as message_send_init
+from status_monitor import init as status_monitor_init
 from web_modules.join_queue import JoinQueue
 from web_modules.utils import GetUrl, SetFooter
 from web_modules.view_summary import ViewSummary
@@ -18,6 +19,9 @@ AddRunLog(3, "数据获取线程启动成功")
 
 message_send_init()
 AddRunLog(3, "消息发送线程启动成功")
+
+status_monitor_init()
+AddRunLog(3, "状态监控线程启动成功")
 
 
 def index():
