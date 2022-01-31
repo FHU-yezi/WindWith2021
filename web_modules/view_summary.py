@@ -36,7 +36,7 @@ def ShowSummary(basic_data: Dict, articles_data: DataFrame, wordcloud_pic_path: 
     AddRunLog(3, f"开始展示 {basic_data['url']}（{basic_data['name']}）的年度总结")
     with use_scope("output"):
         put_text("风起叶落，语存元夜。")
-        put_text("你对简书的贡献，从未被忘却")
+        put_text("你对简书的贡献，从未被忘却。")
         put_text("你的每一次创作，都有价值。")
         put_image(basic_data["avatar_url"], width="100", height="100")  # 显示头像
         put_text(f"{basic_data['name']}，欢迎进入，你的简书 2021 年度总结。")
@@ -320,6 +320,10 @@ def ShowSummary(basic_data: Dict, articles_data: DataFrame, wordcloud_pic_path: 
         put_text("年终总结，完。")
         put_text("2022，启航！")
         put_text("\n")
+
+    yield None
+
+    with use_scope("output"):
         put_text("全体简友 此致")
 
     clear("continue_button_area")  # 移除继续按钮
