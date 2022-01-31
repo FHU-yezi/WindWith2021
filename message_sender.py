@@ -60,7 +60,7 @@ def SendWarningMessage(title: str, message: str) -> None:
             }]
         }
     }
-    AddRunLog(4, f"一条警告消息加入队列，标题为：{title}，内容为：{message}")
+    AddRunLog(4, f"一条警告消息加入队列，标题为：{title}")
     message_queue.put(data)
 
 
@@ -81,7 +81,7 @@ def SendErrorMessage(title: str, message: str) -> None:
             }]
         }
     }
-    AddRunLog(4, f"一条错误消息加入队列，标题为：{title}，内容为：{message}")
+    AddRunLog(4, f"一条错误消息加入队列，标题为：{title}")
     message_queue.put(data)
 
 
