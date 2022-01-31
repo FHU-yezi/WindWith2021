@@ -77,7 +77,7 @@ def index():
     感谢每个对「风语」做出贡献的内测成员和开发者，感谢每个简友对「风语」的关注。
     """)
 
-    put_link("查看信件", url=f"{GetUrl()}?app=Thanks")
+    put_link("查看鸣谢页面", url=f"{GetUrl()}?app=Thanks")
 
     SetFooter(f"Version：{Config()['basic_data/version']} {Config()['basic_data/footer_content']}")
 
