@@ -79,6 +79,16 @@ def index():
 
     put_link("查看鸣谢页面", url=f"{GetUrl()}?app=Thanks")
 
+    put_markdown("""
+    # 反馈
+
+    如果您对「风语」有任何意见或建议，请填写下方表单。
+
+    再渺小的声音，都不应该被忽略。
+    """)
+
+    put_link("填写反馈表单", url="https://wenjuan.feishu.cn/m?t=sFAVCWGHdDzi-x0b0", new_window=True)
+
     SetFooter(f"Version：{Config()['basic_data/version']} {Config()['basic_data/footer_content']}")
 
 
