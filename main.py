@@ -7,6 +7,7 @@ from data_getter import init as data_getter_init
 from log_manager import AddRunLog, AddViewLog
 from message_sender import init as message_send_init
 from status_monitor import init as status_monitor_init
+from web_modules.thanks import Thanks
 from web_modules.join_queue import JoinQueue
 from web_modules.letter_to_jianshuers import LetterToJianshuers
 from web_modules.utils import GetLocalStorage, GetUrl, SetFooter
@@ -66,12 +67,20 @@ def index():
     # 写给简友们的信
 
     这是「风语」的开发者写给大家的信，里面有开发这个项目的心路历程，和对简书生态的期望。
-""")
+    """)
 
     put_link("查看信件", url=f"{GetUrl()}?app=LetterToJianshuers")
+
+    put_markdown("""
+    # 鸣谢
+
+    感谢每个对「风语」做出贡献的内测成员和开发者，感谢每个简友对「风语」的关注。
+    """)
+
+    put_link("查看信件", url=f"{GetUrl()}?app=Thanks")
 
     SetFooter(f"Version：{Config()['basic_data/version']} {Config()['basic_data/footer_content']}")
 
 
 AddRunLog(3, "启动服务......")
-start_server([JoinQueue, ViewSummary, LetterToJianshuers, index], port=Config()["service/port"])
+start_server([JoinQueue, ViewSummary, LetterToJianshuers, Thanks, index], port=Config()["service/port"])

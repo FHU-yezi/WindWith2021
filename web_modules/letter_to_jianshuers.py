@@ -7,7 +7,7 @@ from .utils import GetLocalStorage, SetFooter
 
 
 def LetterToJianshuers():
-    """写给简友们的信
+    """写给简友们的信 ——「风语」
     """
     AddViewLog(session_info, user_url=GetLocalStorage("user_url"), page_name="写给简友们的信")
 
