@@ -84,3 +84,14 @@ def GetOneToShowSummary(user_url: str) -> User:
             user.first_show_summary_time = datetime.now()
             user.save()
             return user
+
+
+def SetUserStatusFailed(user_url: str) -> None:
+    try:
+        user = User.select().where(User.user_url == user_url).get()
+    except Exception:  # 用户不存在
+        raise UserDoesNotExistException(f"用户 {user_url} 不存在")
+    else:
+        user.status = 5
+        user.save()
+        AddRunLog(4, f"已将用户 {user.user_url} 的状态设置为失败")

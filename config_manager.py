@@ -31,6 +31,8 @@ _DEFAULT_CONFIG = {
         "disk_percent_error": 0.9,
         "user_to_process_warn": 30,
         "user_to_process_error": 50,
+        "user_failed_warn": 5,
+        "user_failed_error": 10,
         "views_count_last_60_seconds_warn": 60,
         "views_count_last_60_seconds_error": 100,
         "views_count_last_5_minutes_warn": 200,

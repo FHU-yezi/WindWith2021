@@ -23,6 +23,10 @@ def GetUserToProcessCount():
     return User.select().where(User.status == 1).count()
 
 
+def GetUserFailedCount():
+    return User.select().where(User.status == 5).count()
+
+
 def GetViewsCount(time: int):
     return ViewLog.select().where(ViewLog.time > datetime.now() - timedelta(seconds=time)).count()
 
@@ -40,6 +44,8 @@ def GetErrorsCount(time: int):
 def GetCriticalsCount(time: int):
     return RunLog.select().where(RunLog.time > datetime.now() - timedelta(seconds=time),
                                  RunLog.level == 0).count()
+
+
 
 
 def GetWarnMessageData(now: Union[int, float], limit: Union[int, float], name: str):
@@ -75,8 +81,8 @@ def main():
             continue
 
         if recent_no_time_limit_monitor_error_time:
-            AddRunLog(2, "由于上一次监控触发过无时间限制监控指标的告警，监控服务停止 60 秒。")
-            sleep(60)
+            AddRunLog(2, "由于上一次监控触发过无时间限制监控指标的告警，监控服务停止 3 分钟。")
+            sleep(3 * 60)
             recent_no_time_limit_monitor_error_time = None
             continue
         elif recent_60_seconds_monitor_error_time:
@@ -113,6 +119,16 @@ def main():
             recent_no_time_limit_monitor_error_time = datetime.now()
         elif disk_now > disk_percent_error:
             SendErrorMessage(**GetDangerousMessageData(disk_now, disk_percent_error, "磁盘占用率"))
+            recent_no_time_limit_monitor_error_time = datetime.now()
+
+        user_failed_now = GetUserFailedCount()
+        user_failed_warn = Config()["status_monitor/user_failed_warn"]
+        user_failed_error = Config()["status_monitor/user_failed_error"]
+        if user_failed_now > user_failed_warn:
+            SendWarningMessage(**GetWarnMessageData(user_failed_now, user_failed_warn, "失败用户次数"))
+            recent_no_time_limit_monitor_error_time = datetime.now()
+        elif user_failed_now > user_failed_error:
+            SendErrorMessage(**GetDangerousMessageData(user_failed_now, user_failed_error, "失败用户次数"))
             recent_no_time_limit_monitor_error_time = datetime.now()
 
         user_to_process_now = GetUserToProcessCount()

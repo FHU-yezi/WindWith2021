@@ -34,6 +34,6 @@ def AddViewLog(session_info: info, user_url: str = None, page_name: str = None):
                        os_name=session_info.user_agent.os.family,
                        language=session_info.user_language,
                        ip=session_info.user_ip)
-        AddRunLog(4, f"添加了一条新的访问记录，用户 IP 为：{session_info.user_ip}")
+        AddRunLog(4, f"添加了一条新的访问记录，页面为：{page_name}，用户 IP 为：{session_info.user_ip}")
     except DatabaseError:
         AddRunLog(1, "添加访问日志时出错")
