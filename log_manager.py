@@ -22,10 +22,11 @@ def AddRunLog(level: int, message: str):
         print(f"[{datetime.now()}] [{LEVEL_INT_TO_TEXT[level]}] {message}")
 
 
-def AddViewLog(session_info: info, user_url: str = None):
+def AddViewLog(session_info: info, user_url: str = None, page_name: str = None):
     try:
         ViewLog.create(time=datetime.now(),
                        user_url=user_url,
+                       page_name=page_name,
                        is_mobile=session_info.user_agent.is_mobile,
                        is_tablet=session_info.user_agent.is_tablet,
                        is_pc=session_info.user_agent.is_pc,
@@ -33,5 +34,6 @@ def AddViewLog(session_info: info, user_url: str = None):
                        os_name=session_info.user_agent.os.family,
                        language=session_info.user_language,
                        ip=session_info.user_ip)
+        AddRunLog(4, f"添加了一条新的访问记录，页面为：{page_name}，用户 IP 为：{session_info.user_ip}")
     except DatabaseError:
         AddRunLog(1, "添加访问日志时出错")

@@ -14,6 +14,13 @@ from log_manager import AddRunLog
 
 MAX_QUEUE_LENGTH = 100
 
+# 将上一次未处理完的用户状态改为 1，即未处理
+changed_lines = User.update(status=1, start_process_time=None).where(User.status == 2).execute()
+if changed_lines:
+    AddRunLog(2, f"有 {changed_lines} 个用户的数据未处理完，已重置其状态")
+else:
+    AddRunLog(4, "没有用户的数据未处理完")
+
 banned_list = [x for x in yaml_load(open("banned.yaml", "r"), Loader=SafeLoader)]
 
 queue_length = User.select().where(User.status == 1).count()  # 获取排队中用户数量
@@ -77,3 +84,14 @@ def GetOneToShowSummary(user_url: str) -> User:
             user.first_show_summary_time = datetime.now()
             user.save()
             return user
+
+
+def SetUserStatusFailed(user_url: str) -> None:
+    try:
+        user = User.select().where(User.user_url == user_url).get()
+    except Exception:  # 用户不存在
+        raise UserDoesNotExistException(f"用户 {user_url} 不存在")
+    else:
+        user.status = 5
+        user.save()
+        AddRunLog(4, f"已将用户 {user.user_url} 的状态设置为失败")
