@@ -34,3 +34,8 @@ def GetLocalStorage(key: str) -> str:
     获取 localStorage
     """
     return eval_js(f"localStorage.getItem('{key}')")
+
+def CleanUserUrl(user_url: str) -> str:
+    """清理 user_url，去除其中的无用参数
+    """
+    return user_url.split("?")[0]

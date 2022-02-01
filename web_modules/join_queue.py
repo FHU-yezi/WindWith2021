@@ -13,11 +13,12 @@ from pywebio.pin import pin, put_input
 from pywebio.session import info as session_info
 from queue_manager import AddToQueue
 
-from .utils import GetLocalStorage, GetUrl, SetFooter, SetLocalStorage
+from .utils import (CleanUserUrl, GetLocalStorage, GetUrl, SetFooter,
+                    SetLocalStorage)
 
 
 def JoinQueueAction():
-    user_url = pin["user_url"]
+    user_url = CleanUserUrl(pin["user_url"])
     if not user_url:
         return  # 不输入链接直接点击按钮时不做任何操作
 

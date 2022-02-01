@@ -1,7 +1,6 @@
 from datetime import datetime
 from os import path as os_path
 from typing import Dict
-from httpx import put
 
 import plotly.graph_objs as go
 from config_manager import Config
@@ -25,7 +24,8 @@ from queue_manager import GetOneToShowSummary
 from yaml import SafeLoader
 from yaml import load as yaml_load
 
-from .utils import GetLocalStorage, GetUrl, SetFooter, SetLocalStorage
+from .utils import (CleanUserUrl, GetLocalStorage, GetUrl, SetFooter,
+                    SetLocalStorage)
 
 with open("badge_to_type.yaml", "r", encoding="utf-8") as f:
     BADGE_TO_TYPE = yaml_load(f, SafeLoader)  # 初始化徽章类型表
@@ -332,7 +332,7 @@ def ShowSummary(basic_data: Dict, articles_data: DataFrame, wordcloud_pic_path: 
 
 
 def GetAllData() -> None:
-    user_url = pin["user_url"]  # 从输入框中获取 user_url
+    user_url = CleanUserUrl(pin["user_url"])  # 从输入框中获取 user_url
     if not user_url:  # 输入框为空
         return
 
