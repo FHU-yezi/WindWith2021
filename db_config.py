@@ -47,6 +47,7 @@ class User(Model):
     start_process_time = DateTimeField(null=True)
     finish_process_time = DateTimeField(null=True)
     first_show_summary_time = DateTimeField(null=True)
+    exception_description = CharField(null=True)
 
     class Meta:
         database = SqliteDatabase("userdata.db")

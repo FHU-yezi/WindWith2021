@@ -32,3 +32,26 @@ class UserDataDoesNotReadyException(Exception):
     """用户数据未就绪时抛出此错误
     """
     pass
+
+
+class UserDataException(Exception):
+    """用户数据异常时抛出此错误
+    """
+    pass
+
+class GetUserBasicDataException(Exception):
+    """获取用户基本信息出错时抛出此错误
+    """
+    pass
+
+
+class GetUserArticleDataException(Exception):
+    """获取用户文章信息出错时抛出此错误
+    """
+    pass
+
+
+class GetUserWordCloudException(Exception):
+    """获取用户词云出错时抛出此错误
+    """
+    pass

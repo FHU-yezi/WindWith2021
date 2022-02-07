@@ -8,7 +8,7 @@ from config_manager import Config
 from db_config import User
 from exceptions import (QueueEmptyException, QueueFullException,
                         UserAlreadyExistsException, UserBannedException,
-                        UserDataDoesNotReadyException,
+                        UserDataDoesNotReadyException, UserDataException,
                         UserDoesNotExistException)
 from log_manager import AddRunLog
 
@@ -77,21 +77,27 @@ def GetOneToShowSummary(user_url: str) -> User:
     else:
         if user.status in (1, 2):
             raise UserDataDoesNotReadyException(f"用户 {user_url} 的数据未就绪")
-        elif user.status == 4:  # 已经查看过年终总结
-            return user
-        else:
+        elif user.status == 3:  # 第一次查看年终总结
             user.status = 4
             user.first_show_summary_time = datetime.now()
             user.save()
             return user
+        elif user.status == 4:  # 已经查看过年终总结
+            return user
+        elif user.status == 5:  # 用户状态异常
+            if user.exception_description:
+                raise UserDataException(user.exception_description)
+            else:
+                raise UserDataException("未知")
 
 
-def SetUserStatusFailed(user_url: str) -> None:
+def SetUserStatusFailed(user_url: str, exception_description: str = None) -> None:
     try:
         user = User.select().where(User.user_url == user_url).get()
     except Exception:  # 用户不存在
         raise UserDoesNotExistException(f"用户 {user_url} 不存在")
     else:
         user.status = 5
+        user.exception_description = exception_description
         user.save()
         AddRunLog(4, f"已将用户 {user.user_url} 的状态设置为失败")

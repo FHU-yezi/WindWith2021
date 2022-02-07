@@ -20,7 +20,8 @@ from wordcloud import WordCloud
 from yaml import dump as yaml_dump
 
 from config_manager import Config
-from exceptions import QueueEmptyException
+from exceptions import (GetUserArticleDataException, GetUserBasicDataException,
+                        GetUserWordCloudException, QueueEmptyException)
 from log_manager import AddRunLog
 from message_sender import SendErrorMessage
 from queue_manager import GetOneToProcess, ProcessFinished, SetUserStatusFailed
@@ -47,11 +48,15 @@ if Config()["word_split/enable_hotwords"]:
 else:
     AddRunLog(2, "由于配置文件设置，热点词功能已禁用")
 
+if not path.exists("user_data"):
+        mkdir("user_data")
+
 
 def GetUserArticleData(user_url: str) -> DataFrame:
     start_time = datetime(2021, 1, 1, 0, 0, 0)
     end_time = datetime(2021, 12, 31, 23, 59, 59)
     fail_times = 0
+
     while fail_times < 3:
         result = DataFrame()
         try:
@@ -73,11 +78,11 @@ def GetUserArticleData(user_url: str) -> DataFrame:
             sleep(10)
             continue
         else:
+            if len(result) == 0:
+                raise GetUserArticleDataException(f"用户没有在 2021 年发布文章")
             return result
     else:  # 三次失败
-        AddRunLog(1, f"获取 {user_url} 的文章信息时连续三次失败，获取终止")
-        SendErrorMessage("获取文章信息失败", f"获取 {user_url} 的文章信息时连续三次失败，获取终止")
-        return None
+        raise GetUserBasicDataException(f"获取文章信息时连续三次失败")
 
 
 def GetUserBasicData(user_url: str) -> Dict:
@@ -94,10 +99,8 @@ def GetUserBasicData(user_url: str) -> Dict:
             continue
         else:
             break
-    if fail_times == 3:
-        AddRunLog(1, f"获取 {user_url} 的基础信息时连续三次失败，获取终止")
-        SendErrorMessage("获取基础信息失败", f"获取 {user_url} 的基础信息时连续三次失败，获取终止")
-        return None
+    else:  # 三次失败
+        raise GetUserBasicDataException(f"获取基础信息时连续三次失败")
 
     result["id"] = data["articles_count"]["id"]
     result["slug"] = data["articles_count"]["slug"]
@@ -117,15 +120,13 @@ def GetUserBasicData(user_url: str) -> Dict:
     result["articles_count"] = GetUserArticlesCount(user_url, disable_check=True)
     result["introduction_text"] = data["introduction_text"]
     result["badges_list"] = data["badges_list"]
-    # 数据存在问题，暂时不获取
-    # result["last_update_time"] = data["last_update_time"]
     result["next_anniversary_day"] = data["next_anniversary_day"]
     result["vip_type"] = data["vip_info"]["vip_type"]
     result["vip_expire_time"] = data["vip_info"]["expire_date"]
     return result
 
 
-def GetWordcloud(articles_list: List[str], user_slug: str) -> None:
+def GetUserWordcloud(articles_list: List[str], user_slug: str) -> None:
     allow_word_types = ("Ag", "a", "ad", "an", "dg", "g",
                         "i", "j", "l", "Ng", "n", "nr",
                         "ns", "nt", "nz", "tg", "vg", "v",
@@ -143,26 +144,25 @@ def GetWordcloud(articles_list: List[str], user_slug: str) -> None:
                 continue
             else:
                 break
-        if fail_times == 3:
-            AddRunLog(1, f"获取 {user_slug} 的文章内容时连续三次失败，获取终止")
-            SendErrorMessage("获取文章内容失败", f"获取 {user_slug} 的文章内容时连续三次失败，获取终止")
-            return None
+        else:  # 三次失败
+            raise GetUserWordCloudException(f"获取文章内容时连续三次失败")
 
         # 只保留非单字词，且这些词必须不在停用词列表里，并属于特定词性
         cutted_text = (x.word for x in cutted_text if len(x.word) > 1
                         and x.flag in allow_word_types and x.word not in STOPWORDS)
         words_count += Counter(cutted_text)
+
     wordcloud = WordCloud(font_path="wordcloud_assets/font.otf", width=1280, height=720,
                           background_color="white", max_words=100)
-    # 筛选出现十次以上的词
-    img = wordcloud.generate_from_frequencies({key: value for key, value in words_count.items() if value > 10})
-    return img
+    if words_count.most_common(1)[0][1] <= 10:  # 文章中的最高频词没有达到可生成词云的数量
+        raise GetUserWordCloudException(f"用户文章中的最高频词没有达到可生成词云的数量")
+    else:
+        # 筛选出现十次以上的词
+        img = wordcloud.generate_from_frequencies({key: value for key, value in words_count.items() if value > 10})
+        return img
 
 
 def main():
-    if not path.exists("user_data"):
-        mkdir("user_data")
-
     while True:
         try:
             user = GetOneToProcess()
@@ -171,16 +171,18 @@ def main():
             continue
         else:
             user_slug = UserUrlToUserSlug(user.user_url)
-            if not path.exists(f"user_data/{user_slug}"):  # 避免获取到中途时服务重启导致文件夹已存在报错
-                mkdir(f"user_data/{user_slug}")
 
-        AddRunLog(3, f"开始执行数据获取任务，user_slug：{user_slug}")
+        if not path.exists(f"user_data/{user_slug}"):  # 避免获取到中途时服务重启导致文件夹已存在报错
+            mkdir(f"user_data/{user_slug}")
+
+        AddRunLog(3, f"开始执行 {user.user_url}（{user.user_name}）的数据获取任务")
 
         AddRunLog(4, f"开始获取 {user.user_url}（{user.user_name}）的基础数据")
-        basic_data = GetUserBasicData(user.user_url)
-        if not isinstance(basic_data, dict):
-            AddRunLog(1, f"由于基础信息获取失败，跳过 {user.user_url}（{user.user_name}）的数据获取")
-            SetUserStatusFailed(user.user_url)
+        try:
+            basic_data = GetUserBasicData(user.user_url)
+        except GetUserBasicDataException as e:
+            AddRunLog(1, f"获取 {user.user_url}（{user.user_name}）的基础数据时发生错误：{str(e)}")
+            SetUserStatusFailed(user.user_url, str(e))
             continue  # 开始下一名用户的数据获取
         else:
             with open(f"user_data/{user_slug}/basic_data_{user_slug}.yaml", "w", encoding="utf-8") as f:
@@ -188,30 +190,26 @@ def main():
             AddRunLog(4, f"获取 {user.user_url}（{user.user_name}）的基础数据完成")
 
         AddRunLog(4, f"开始获取 {user.user_url}（{user.user_name}）的文章数据")
-        article_data = GetUserArticleData(user.user_url)
-        if not isinstance(article_data, DataFrame):
-            AddRunLog(1, f"由于文章信息获取失败，跳过 {user.user_url}（{user.user_name}）的数据获取")
-            SetUserStatusFailed(user.user_url)
+        try:
+            article_data = GetUserArticleData(user.user_url)
+        except GetUserArticleDataException as e:
+            AddRunLog(1, f"获取 {user.user_url}（{user.user_name}）的文章数据时发生错误：{str(e)}")
+            SetUserStatusFailed(user.user_url, str(e))
             continue  # 开始下一名用户的数据获取
         else:
-            if len(article_data) != 0:
-                article_data.to_csv(f"user_data/{user_slug}/article_data_{user_slug}.csv", index=False)
-                AddRunLog(4, f"获取 {user.user_url}（{user.user_name}）的文章数据完成，共 {len(article_data)} 条")
-            else:
-                AddRunLog(2, f"{user.user_url}（{user.user_name}）没有在 2021 年发布文章，未保存他的文章数据文件")
+            article_data.to_csv(f"user_data/{user_slug}/article_data_{user_slug}.csv", index=False)
+            AddRunLog(4, f"获取 {user.user_url}（{user.user_name}）的文章数据完成，共 {len(article_data)} 条")
 
-        if len(article_data) != 0:  # 用户没有在 2021 年发布文章
-            AddRunLog(4, f"开始为 {user.user_url}（{user.user_name}）生成词云图")
-            wordcloud_img = GetWordcloud((ArticleSlugToArticleUrl(x) for x in list(article_data["aslug"])), user_slug)
-            if not isinstance(wordcloud_img, WordCloud):
-                AddRunLog(1, f"由于文章内容获取失败，跳过 {user.user_url}（{user.user_name}）的数据获取")
-                SetUserStatusFailed(user.user_url)
-                continue  # 开始下一名用户的数据获取
-            else:
-                wordcloud_img.to_file(f"user_data/{user_slug}/wordcloud_{user_slug}.png")
-                AddRunLog(4, f"为 {user.user_url}（{user.user_name}）生成词云图完成")
+        AddRunLog(4, f"开始为 {user.user_url}（{user.user_name}）生成词云图")
+        try:
+            wordcloud_img = GetUserWordcloud((ArticleSlugToArticleUrl(x) for x in list(article_data["aslug"])), user_slug)
+        except GetUserWordCloudException as e:
+            AddRunLog(1, f"为 {user.user_url}（{user.user_name}）生成词云图时发生错误：{str(e)}")
+            SetUserStatusFailed(user.user_url, str(e))
+            continue  # 开始下一名用户的数据获取
         else:
-            AddRunLog(2, f"{user.user_url}（{user.user_name}）没有在 2021 年发布文章，跳过词云生成")
+            wordcloud_img.to_file(f"user_data/{user_slug}/wordcloud_{user_slug}.png")
+            AddRunLog(4, f"为 {user.user_url}（{user.user_name}）生成词云图成功")
 
         ProcessFinished(user.user_url)  # 如果数据获取完整，就将用户状态改为 3，表示已完成数据获取
         AddRunLog(3, f"数据获取任务执行完毕，user_slug：{user_slug}")
