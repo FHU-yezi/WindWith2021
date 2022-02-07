@@ -1,5 +1,4 @@
 from datetime import datetime
-from os import path as os_path
 from typing import Dict
 
 import plotly.graph_objs as go
@@ -21,7 +20,7 @@ from pywebio.output import (clear, put_button, put_buttons, put_image,
                             use_scope)
 from pywebio.pin import pin, put_input
 from pywebio.session import info as session_info
-from queue_manager import GetOneToShowSummary
+from queue_manager import GetUserToShowSummary
 from yaml import SafeLoader
 from yaml import load as yaml_load
 
@@ -211,7 +210,7 @@ def ShowSummary(basic_data: Dict, articles_data: DataFrame, wordcloud_pic_path: 
                 data = sorted(data, key=lambda x: x[0])
                 datas[index] = dict(data)
             # 转换数据集格式
-            datas_name = ("点赞数", "评论数", "打赏数")
+            datas_name = ("获赞量", "评论量", "打赏量")
             for index, data in enumerate(datas):
                 data_name = datas_name[index]
                 datas[index] = go.Scatter(x=tuple(data.keys()), y=tuple(data.values()), name=data_name)
@@ -350,7 +349,7 @@ def GetAllData() -> None:
         AddRunLog(4, f"{user_url} 有效")
 
     try:
-        user = GetOneToShowSummary(user_url)
+        user = GetUserToShowSummary(user_url)
     except UserDoesNotExistException:
         toast("您未加入队列，请先排队", color="warn")
         with use_scope("data_input", clear=True):
@@ -375,6 +374,7 @@ def GetAllData() -> None:
             put_text(f"如需帮助，请联系开发者。")
         exit()
     else:
+        SetLocalStorage("user_url", user.user_url)  # 将用户链接保存到本地
         AddRunLog(4, f"{user.user_url}（{user.user_name}）的数据已就绪")
         user_slug = UserUrlToUserSlug(user.user_url)
 
@@ -391,7 +391,6 @@ def GetAllData() -> None:
         AddRunLog(4, f"成功加载 {user.user_url}（{user.user_name}）的文章数据")
 
         clear("data_input")  # 清空数据输入区
-        SetLocalStorage("user_url", user.user_url)  # 将用户链接保存到本地
         with use_scope("output"):  # 初始化输出区
             pass
 
