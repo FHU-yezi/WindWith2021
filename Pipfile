@@ -14,6 +14,7 @@ pyyaml = "==5.4.1"
 plotly = "==5.5.0"
 kaleido = "*"
 psutil = "==5.9.0"
+openpyxl = "==3.0.9"
 
 [dev-packages]
 
