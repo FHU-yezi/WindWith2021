@@ -212,7 +212,7 @@ def main():
             AddRunLog(4, f"为 {user.user_url}（{user.user_name}）生成词云图成功")
 
         ProcessFinished(user.user_url)  # 如果数据获取完整，就将用户状态改为 3，表示已完成数据获取
-        AddRunLog(3, f"数据获取任务执行完毕，user_slug：{user_slug}")
+        AddRunLog(3, f" {user.user_url}（{user.user_name}）的数据获取任务执行完毕")
 
 
 def init():
