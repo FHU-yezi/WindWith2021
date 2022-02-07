@@ -1,10 +1,10 @@
 from datetime import datetime
-from os import path as os_path
 from typing import Dict
 
 import plotly.graph_objs as go
 from config_manager import Config
-from exceptions import UserDataDoesNotReadyException, UserDoesNotExistException
+from exceptions import (UserDataDoesNotReadyException, UserDataException,
+                        UserDoesNotExistException)
 from JianshuResearchTools.assert_funcs import (AssertUserStatusNormal,
                                                AssertUserUrl)
 from JianshuResearchTools.convert import UserUrlToUserSlug
@@ -20,7 +20,7 @@ from pywebio.output import (clear, put_button, put_buttons, put_image,
                             use_scope)
 from pywebio.pin import pin, put_input
 from pywebio.session import info as session_info
-from queue_manager import GetOneToShowSummary
+from queue_manager import GetUserToShowSummary
 from yaml import SafeLoader
 from yaml import load as yaml_load
 
@@ -210,7 +210,7 @@ def ShowSummary(basic_data: Dict, articles_data: DataFrame, wordcloud_pic_path: 
                 data = sorted(data, key=lambda x: x[0])
                 datas[index] = dict(data)
             # 转换数据集格式
-            datas_name = ("点赞数", "评论数", "打赏数")
+            datas_name = ("获赞量", "评论量", "打赏量")
             for index, data in enumerate(datas):
                 data_name = datas_name[index]
                 datas[index] = go.Scatter(x=tuple(data.keys()), y=tuple(data.values()), name=data_name)
@@ -346,10 +346,10 @@ def GetAllData() -> None:
         return
     else:
         user_name = GetUserName(user_url, disable_check=True)
-        AddRunLog(4, f"{user_url} 校验成功，对应的用户名为 {user_name}")
+        AddRunLog(4, f"{user_url} 有效")
 
     try:
-        user_url = GetOneToShowSummary(user_url).user_url  # 将数据库中的用户状态更改为已查看年度总结
+        user = GetUserToShowSummary(user_url)
     except UserDoesNotExistException:
         toast("您未加入队列，请先排队", color="warn")
         with use_scope("data_input", clear=True):
@@ -366,39 +366,33 @@ def GetAllData() -> None:
             put_text(f"尊敬的简友 {user_name}，我们正在努力获取您的数据，请稍后再试。")
         AddRunLog(4, f"{user_url}（{user_name}）的数据未就绪")
         return
+    except UserDataException as e:
+        AddRunLog(2, f"用户 {user_url}（{user_name}）获取年终总结失败，因为他的数据存在异常：{str(e)}")
+        clear("data_input")  # 清空数据输入区
+        with use_scope("output"):
+            put_text(f"抱歉，我们无法为您生成年终总结，因为您的数据存在以下异常：{str(e)}。")
+            put_text("如需帮助，请联系开发者。")
+        exit()
     else:
-        AddRunLog(4, f"{user_url}（{user_name}）的数据已就绪")
-        user_slug = UserUrlToUserSlug(user_url)
+        SetLocalStorage("user_url", user.user_url)  # 将用户链接保存到本地
+        AddRunLog(4, f"{user.user_url}（{user.user_name}）的数据已就绪")
+        user_slug = UserUrlToUserSlug(user.user_url)
 
         basic_data_path = f"user_data/{user_slug}/basic_data_{user_slug}.yaml"
         articles_data_path = f"user_data/{user_slug}/article_data_{user_slug}.csv"
         wordcloud_pic_path = f"user_data/{user_slug}/wordcloud_{user_slug}.png"
 
-        if not os_path.exists(articles_data_path):  # 没有文章数据
-            articles_data_path = None
-        if not os_path.exists(wordcloud_pic_path):  # 没有词云图
-            wordcloud_pic_path = None
-
-        if not articles_data_path and not wordcloud_pic_path:
-            clear("data_input")  # 清空数据输入区
-            with use_scope("output"):
-                put_text("抱歉，目前我们暂时不支持对 2021 年没有发布过文章的用户生成年度总结。")
-            AddRunLog(2, f"{user_url}（{user_name}）由于没有在 2021 年aa发布过文章，暂时不支持生成年度总结")
-            exit()
-
         with open(basic_data_path, "r", encoding="utf-8") as f:
             basic_data = yaml_load(f, SafeLoader)
-        AddRunLog(4, f"成功加载 {user_url}（{user_name}）的基础数据")
+        AddRunLog(4, f"成功加载 {user.user_url}（{user.user_name}）的基础数据")
 
         with open(articles_data_path, "r", encoding="utf-8") as f:
             articles_data = read_csv(f)
-        AddRunLog(4, f"成功加载 {user_url}（{user_name}）的文章数据")
+        AddRunLog(4, f"成功加载 {user.user_url}（{user.user_name}）的文章数据")
 
         clear("data_input")  # 清空数据输入区
-        SetLocalStorage("user_url", user_url)  # 将用户链接保存到本地
         with use_scope("output"):  # 初始化输出区
             pass
-
 
         show_summary_obj = ShowSummary(basic_data, articles_data, wordcloud_pic_path)
         with use_scope("continue_button_area"):

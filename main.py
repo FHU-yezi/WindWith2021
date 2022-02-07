@@ -7,9 +7,10 @@ from data_getter import init as data_getter_init
 from log_manager import AddRunLog, AddViewLog
 from message_sender import init as message_send_init
 from status_monitor import init as status_monitor_init
-from web_modules.thanks import Thanks
+from web_modules.article_data_export import ArticleDataExport
 from web_modules.join_queue import JoinQueue
 from web_modules.letter_to_jianshuers import LetterToJianshuers
+from web_modules.thanks import Thanks
 from web_modules.utils import GetLocalStorage, GetUrl, SetFooter
 from web_modules.view_summary import ViewSummary
 
@@ -64,6 +65,31 @@ def index():
     put_link("查看年终总结", url=f"{GetUrl()}?app=ViewSummary")
 
     put_markdown("""
+    # 文章数据导出
+
+    为了帮助大家分析自己的文章数据，我们提供数据导出功能。
+
+    数据获取完成之后就可以生成了哦，支持 Excel 和 CSV 格式。
+    """)
+
+    put_link("文章数据导出", url=f"{GetUrl()}?app=ArticleDataExport")
+
+    put_markdown("""
+    # 写给简友们的信
+
+    这是「风语」的开发者写给大家的信，里面有开发这个项目的心路历程，和对简书生态的期望。
+    """)
+
+    put_link("查看信件", url=f"{GetUrl()}?app=LetterToJianshuers")
+
+    put_markdown("""
+    # 「风语」专题
+
+    该专题收录了简友们的「风语」年度总结，欢迎投稿。
+    """)
+
+    put_link("前往专题", url="https://www.jianshu.com/c/5cb0d11d6013", new_window=True)
+    put_markdown("""
     # 写给简友们的信
 
     这是「风语」的开发者写给大家的信，里面有开发这个项目的心路历程，和对简书生态的期望。
@@ -93,4 +119,4 @@ def index():
 
 
 AddRunLog(3, "启动服务......")
-start_server([JoinQueue, ViewSummary, LetterToJianshuers, Thanks, index], port=Config()["service/port"])
+start_server([JoinQueue, ViewSummary, ArticleDataExport, LetterToJianshuers, Thanks, index], port=Config()["service/port"])
