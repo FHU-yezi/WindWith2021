@@ -83,6 +83,21 @@ def index():
     put_link("查看信件", url=f"{GetUrl()}?app=LetterToJianshuers")
 
     put_markdown("""
+    # 「风语」专题
+
+    该专题收录了简友们的「风语」年度总结，欢迎投稿。
+    """)
+
+    put_link("前往专题", url="https://www.jianshu.com/c/5cb0d11d6013", new_window=True)
+    put_markdown("""
+    # 写给简友们的信
+
+    这是「风语」的开发者写给大家的信，里面有开发这个项目的心路历程，和对简书生态的期望。
+    """)
+
+    put_link("查看信件", url=f"{GetUrl()}?app=LetterToJianshuers")
+
+    put_markdown("""
     # 鸣谢
 
     感谢每个对「风语」做出贡献的内测成员和开发者，感谢每个简友对「风语」的关注。
