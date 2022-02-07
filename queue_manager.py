@@ -35,7 +35,8 @@ def AddToQueue(user_url: str, user_name: str) -> None:
     if queue_length + 1 > MAX_QUEUE_LENGTH:  # 如果队列已满
         raise QueueFullException("队列已满，请稍后再试")
     try:
-        User.create(user_url=user_url, user_name=user_name, status=1, add_time=datetime.now())
+        User.create(user_url=user_url, user_name=user_name,
+                    status=1, data_exported=False, add_time=datetime.now())
     except DatabaseError:  # 主键是 user_url，出错意味着用户已存在
         raise UserAlreadyExistsException(f"用户 {user_url} 已存在")
     else:
@@ -69,7 +70,7 @@ def ProcessFinished(user_url: str) -> None:
         user.save()
 
 
-def GetOneToShowSummary(user_url: str) -> User:
+def GetUserToShowSummary(user_url: str) -> User:
     try:
         user = User.select().where(User.user_url == user_url).get()
     except Exception:  # 用户不存在
@@ -84,6 +85,29 @@ def GetOneToShowSummary(user_url: str) -> User:
             return user
         elif user.status == 4:  # 已经查看过年终总结
             return user
+        elif user.status == 5:  # 用户状态异常
+            if user.exception_description:
+                raise UserDataException(user.exception_description)
+            else:
+                raise UserDataException("未知")
+
+
+def GetUserToExportData(user_url: str) -> User:
+    try:
+        user = User.select().where(User.user_url == user_url).get()
+    except Exception:  # 用户不存在
+        raise UserDoesNotExistException(f"用户 {user_url} 不存在")
+    else:
+        if user.status in (1, 2):
+            raise UserDataDoesNotReadyException(f"用户 {user_url} 的数据未就绪")
+        elif user.status in (3, 4):
+            if not user.data_exported:  # 第一次导出数据
+                user.data_exported = True
+                user.first_data_export_time = datetime.now()
+                user.save()
+                return user
+            else:  # 已经导出过数据
+                return user
         elif user.status == 5:  # 用户状态异常
             if user.exception_description:
                 raise UserDataException(user.exception_description)

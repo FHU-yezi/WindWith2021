@@ -371,7 +371,7 @@ def GetAllData() -> None:
         clear("data_input")  # 清空数据输入区
         with use_scope("output"):
             put_text(f"抱歉，我们无法为您生成年终总结，因为您的数据存在以下异常：{str(e)}。")
-            put_text(f"如需帮助，请联系开发者。")
+            put_text("如需帮助，请联系开发者。")
         exit()
     else:
         SetLocalStorage("user_url", user.user_url)  # 将用户链接保存到本地

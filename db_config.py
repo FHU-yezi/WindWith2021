@@ -43,10 +43,12 @@ class User(Model):
     user_url = CharField(primary_key=True)
     user_name = CharField()
     status = IntegerField()
+    data_exported = BooleanField()
     add_time = DateTimeField()
     start_process_time = DateTimeField(null=True)
     finish_process_time = DateTimeField(null=True)
     first_show_summary_time = DateTimeField(null=True)
+    first_data_export_time = DateTimeField(null=True)
     exception_description = CharField(null=True)
 
     class Meta:
