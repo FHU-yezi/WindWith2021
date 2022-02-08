@@ -23,6 +23,12 @@ _DEFAULT_CONFIG = {
     "auth": {
         "enable_banlist": True
     },
+    "notification": {
+        "enable": False,
+        "closable": True,
+        "title": None,
+        "content": None
+    },
     "status_monitor": {
         "enable_status_monitor": True,
         "memory_percent_warn": 0.7,

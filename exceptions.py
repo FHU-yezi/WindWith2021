@@ -39,6 +39,7 @@ class UserDataException(Exception):
     """
     pass
 
+
 class GetUserBasicDataException(Exception):
     """获取用户基本信息出错时抛出此错误
     """

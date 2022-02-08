@@ -23,17 +23,16 @@ from config_manager import Config
 from exceptions import (GetUserArticleDataException, GetUserBasicDataException,
                         GetUserWordCloudException, QueueEmptyException)
 from log_manager import AddRunLog
-from message_sender import SendErrorMessage
 from queue_manager import GetOneToProcess, ProcessFinished, SetUserStatusFailed
 
 jieba.setLogLevel(jieba.logging.ERROR)  # 关闭 jieba 的日志输出
-if sys_platform != "win32" and Config()["perf/enable_jieba_parallel"]:
-    AddRunLog(3, "已开启多进程分词")
-    jieba.enable_parallel(2)
-elif not Config()["perf/enable_jieba_parallel"]:
+if not Config()["perf/enable_jieba_parallel"]:
     AddRunLog(2, "由于配置文件设置，多进程分词已禁用")
 elif sys_platform == "win32":
     AddRunLog(2, "由于当前系统不支持，多进程分词已禁用")
+else:
+    AddRunLog(3, "已开启多进程分词")
+    jieba.enable_parallel(2)
 
 if Config()["word_split/enable_stopwords"]:
     with open("wordcloud_assets/stopwords.txt", "r", encoding="utf-8") as f:
@@ -49,7 +48,7 @@ else:
     AddRunLog(2, "由于配置文件设置，热点词功能已禁用")
 
 if not path.exists("user_data"):
-        mkdir("user_data")
+    mkdir("user_data")
 
 
 def GetUserArticleData(user_url: str) -> DataFrame:
@@ -65,24 +64,21 @@ def GetUserArticleData(user_url: str) -> DataFrame:
                 if item_release_time > end_time:  # 文章发布时间晚于 2021 年
                     pass  # 文章是按照时间倒序排列的，此时不做任何处理
                 elif item_release_time < start_time:  # 文章发布时间早于 2021 年
-                    if item["is_top"]:  # 置顶文章
-                        pass  # 置顶文章永远排在最前面，此时不做任何处理
-                    else:  # 非置顶文章
+                    if not item["is_top"]:
                         break  # 非置顶文章的发布时间早于 2021 年，则不再继续查询
                 else:  # 文章发布时间在 2021 年内
                     item["wordage"] = GetArticleWordage(ArticleSlugToArticleUrl(item["aslug"]), disable_check=True)
                     result = result.append(item, ignore_index=True, sort=False)  # 将新的文章追加到 DataFrame 中
         except HTTPError as e:
             fail_times += 1
-            AddRunLog(2, f"获取 {user_url} 的文章信息时发生错误：{str(e)}，这是第 {fail_times} 次出错，10 秒后重试")
+            AddRunLog(2, f"获取 {user_url} 的文章信息时发生错误：{e}，这是第 {fail_times} 次出错，10 秒后重试")
             sleep(10)
             continue
         else:
             if len(result) == 0:
-                raise GetUserArticleDataException(f"用户没有在 2021 年发布文章")
+                raise GetUserArticleDataException("用户没有在 2021 年发布文章")
             return result
-    else:  # 三次失败
-        raise GetUserBasicDataException(f"获取文章信息时连续三次失败")
+    raise GetUserBasicDataException("获取文章信息时连续三次失败")
 
 
 def GetUserBasicData(user_url: str) -> Dict:
@@ -94,13 +90,13 @@ def GetUserBasicData(user_url: str) -> Dict:
             data = GetUserAllBasicData(user_url)
         except HTTPError as e:
             fail_times += 1
-            AddRunLog(2, f"获取 {user_url} 的基础信息时发生错误：{str(e)}，这是第 {fail_times} 次出错，10 秒后重试")
+            AddRunLog(2, f"获取 {user_url} 的基础信息时发生错误：{e}，这是第 {fail_times} 次出错，10 秒后重试")
             sleep(10)
             continue
         else:
             break
     else:  # 三次失败
-        raise GetUserBasicDataException(f"获取基础信息时连续三次失败")
+        raise GetUserBasicDataException("获取基础信息时连续三次失败")
 
     result["id"] = data["articles_count"]["id"]
     result["slug"] = data["articles_count"]["slug"]
@@ -139,27 +135,27 @@ def GetUserWordcloud(articles_list: List[str], user_slug: str) -> None:
                 cutted_text = pseg.cut(GetArticleText(article_url, disable_check=True))
             except HTTPError as e:
                 fail_times += 1
-                AddRunLog(2, f"获取 {user_slug} 的文章内容时发生错误：{str(e)}，这是第 {fail_times} 次出错，10 秒后重试")
+                AddRunLog(2, f"获取 {user_slug} 的文章内容时发生错误：{e}，这是第 {fail_times} 次出错，10 秒后重试")
                 sleep(10)
                 continue
             else:
                 break
         else:  # 三次失败
-            raise GetUserWordCloudException(f"获取文章内容时连续三次失败")
+            raise GetUserWordCloudException("获取文章内容时连续三次失败")
 
         # 只保留非单字词，且这些词必须不在停用词列表里，并属于特定词性
         cutted_text = (x.word for x in cutted_text if len(x.word) > 1
-                        and x.flag in allow_word_types and x.word not in STOPWORDS)
+                       and x.flag in allow_word_types and x.word not in STOPWORDS)
         words_count += Counter(cutted_text)
 
     wordcloud = WordCloud(font_path="wordcloud_assets/font.otf", width=1280, height=720,
                           background_color="white", max_words=100)
     if words_count.most_common(1)[0][1] <= 10:  # 文章中的最高频词没有达到可生成词云的数量
-        raise GetUserWordCloudException(f"用户文章中的最高频词没有达到可生成词云的数量")
+        raise GetUserWordCloudException("用户文章中的最高频词没有达到可生成词云的数量")
     else:
-        # 筛选出现十次以上的词
-        img = wordcloud.generate_from_frequencies({key: value for key, value in words_count.items() if value > 10})
-        return img
+        return wordcloud.generate_from_frequencies(
+            {key: value for key, value in words_count.items() if value > 10}
+        )
 
 
 def main():
@@ -181,9 +177,9 @@ def main():
         try:
             basic_data = GetUserBasicData(user.user_url)
         except GetUserBasicDataException as e:
-            AddRunLog(1, f"获取 {user.user_url}（{user.user_name}）的基础数据时发生错误：{str(e)}")
+            AddRunLog(1, f"获取 {user.user_url}（{user.user_name}）的基础数据时发生错误：{e}")
             SetUserStatusFailed(user.user_url, str(e))
-            continue  # 开始下一名用户的数据获取
+            continue
         else:
             with open(f"user_data/{user_slug}/basic_data_{user_slug}.yaml", "w", encoding="utf-8") as f:
                 yaml_dump(basic_data, f, indent=4, allow_unicode=True)
@@ -193,9 +189,9 @@ def main():
         try:
             article_data = GetUserArticleData(user.user_url)
         except GetUserArticleDataException as e:
-            AddRunLog(1, f"获取 {user.user_url}（{user.user_name}）的文章数据时发生错误：{str(e)}")
+            AddRunLog(1, f"获取 {user.user_url}（{user.user_name}）的文章数据时发生错误：{e}")
             SetUserStatusFailed(user.user_url, str(e))
-            continue  # 开始下一名用户的数据获取
+            continue
         else:
             article_data.to_csv(f"user_data/{user_slug}/article_data_{user_slug}.csv", index=False)
             AddRunLog(4, f"获取 {user.user_url}（{user.user_name}）的文章数据完成，共 {len(article_data)} 条")
@@ -204,9 +200,9 @@ def main():
         try:
             wordcloud_img = GetUserWordcloud((ArticleSlugToArticleUrl(x) for x in list(article_data["aslug"])), user_slug)
         except GetUserWordCloudException as e:
-            AddRunLog(1, f"为 {user.user_url}（{user.user_name}）生成词云图时发生错误：{str(e)}")
+            AddRunLog(1, f"为 {user.user_url}（{user.user_name}）生成词云图时发生错误：{e}")
             SetUserStatusFailed(user.user_url, str(e))
-            continue  # 开始下一名用户的数据获取
+            continue
         else:
             wordcloud_img.to_file(f"user_data/{user_slug}/wordcloud_{user_slug}.png")
             AddRunLog(4, f"为 {user.user_url}（{user.user_name}）生成词云图成功")
