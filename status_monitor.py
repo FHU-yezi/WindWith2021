@@ -46,8 +46,6 @@ def GetCriticalsCount(time: int):
                                  RunLog.level == 0).count()
 
 
-
-
 def GetWarnMessageData(now: Union[int, float], limit: Union[int, float], name: str):
     title = f"{name}达到警告阈值"
     message = f"""时间：{datetime.now().strftime(r"%Y-%m-%d %H:%M:%S")}

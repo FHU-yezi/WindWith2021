@@ -21,7 +21,7 @@ if changed_lines:
 else:
     AddRunLog(4, "没有用户的数据未处理完")
 
-banned_list = [x for x in yaml_load(open("banned.yaml", "r"), Loader=SafeLoader)]
+banned_list = list(yaml_load(open("banned.yaml", "r"), Loader=SafeLoader))
 
 queue_length = User.select().where(User.status == 1).count()  # 获取排队中用户数量
 
@@ -105,9 +105,7 @@ def GetUserToExportData(user_url: str) -> User:
                 user.data_exported = True
                 user.first_data_export_time = datetime.now()
                 user.save()
-                return user
-            else:  # 已经导出过数据
-                return user
+            return user
         elif user.status == 5:  # 用户状态异常
             if user.exception_description:
                 raise UserDataException(user.exception_description)

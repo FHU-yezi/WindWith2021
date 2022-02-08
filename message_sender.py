@@ -118,7 +118,7 @@ def main() -> None:
         try:
             authorization_code = GetAuthorizationCode(app_id, app_secret)
         except HTTPError as e:
-            AddRunLog(1, f"获取授权码时发生错误：{str(e)}")
+            AddRunLog(1, f'获取授权码时发生错误：{e}')
             message_queue.put(data)  # 把消息放回队列
             sleep(30)  # 等待三十秒后再次尝试发送
             continue
@@ -126,7 +126,7 @@ def main() -> None:
         try:
             _SendMessageByFeishu(authorization_code, email, data)
         except HTTPError as e:
-            AddRunLog(1, f"发送飞书消息时发生错误：{str(e)}")
+            AddRunLog(1, f'发送飞书消息时发生错误：{e}')
             message_queue.put(data)  # 把消息放回队列
             sleep(30)  # 等待三十秒后再次尝试发送
             continue

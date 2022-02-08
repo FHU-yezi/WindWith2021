@@ -59,10 +59,10 @@ def ExportArticleData(format: str) -> None:
         AddRunLog(4, f"{user_url}（{user_name}）的数据未就绪")
         return
     except UserDataException as e:
-        AddRunLog(2, f"用户 {user_url}（{user_name}）导出文章数据失败，因为他的数据存在异常：{str(e)}")
+        AddRunLog(2, f'用户 {user_url}（{user_name}）导出文章数据失败，因为他的数据存在异常：{e}')
         clear("data_input")  # 清空数据输入区
         with use_scope("output"):
-            put_text(f"抱歉，我们无法为您导出文章数据，因为您的数据存在以下异常：{str(e)}。")
+            put_text(f'抱歉，我们无法为您导出文章数据，因为您的数据存在以下异常：{e}。')
             put_text("如需帮助，请联系开发者。")
         exit()
     else:

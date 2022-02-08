@@ -233,7 +233,7 @@ def ShowSummary(basic_data: Dict, articles_data: DataFrame, wordcloud_pic_path: 
         data = dict(article_data_copy.resample("H").count()["aid"])  # 将时间数据按小时分组并转化成字典
         data = {key.hour: value for key, value in data.items()}  # 将数据转换为字典，键为时间，值为发布文章数
         # 补全缺失的时间数据
-        for time in range(0, 24):
+        for time in range(24):
             if not data.get(time):
                 data[time] = 0
         # 对数据进行排序
@@ -289,7 +289,7 @@ def ShowSummary(basic_data: Dict, articles_data: DataFrame, wordcloud_pic_path: 
 
     with use_scope("output"):
         put_text(f"在大家面前，你的名字是{basic_data['name']}，而在简书的数据库中，你的代号是 {basic_data['id']}。")
-        put_text(f"简友间的互动，连接成一张紧密的社交网络，成为思想涌流的桥梁。")
+        put_text("简友间的互动，连接成一张紧密的社交网络，成为思想涌流的桥梁。")
         put_text("\n")
 
     yield None
@@ -367,11 +367,11 @@ def GetAllData() -> None:
         AddRunLog(4, f"{user_url}（{user_name}）的数据未就绪")
         return
     except UserDataException as e:
-        AddRunLog(2, f"用户 {user_url}（{user_name}）获取年终总结失败，因为他的数据存在异常：{str(e)}")
-        clear("data_input")  # 清空数据输入区
-        with use_scope("output"):
-            put_text(f"抱歉，我们无法为您生成年终总结，因为您的数据存在以下异常：{str(e)}。")
-            put_text("如需帮助，请联系开发者。")
+        AddRunLog(2, f'用户 {user_url}（{user_name}）获取年终总结失败，因为他的数据存在异常：{e}')
+        clear('data_input')
+        with use_scope('output'):
+            put_text(f'抱歉，我们无法为您生成年终总结，因为您的数据存在以下异常：{e}。')
+            put_text('如需帮助，请联系开发者。')
         exit()
     else:
         SetLocalStorage("user_url", user.user_url)  # 将用户链接保存到本地
