@@ -1,5 +1,5 @@
 from pywebio import start_server
-from pywebio.output import put_link, put_markdown
+from pywebio.output import popup, put_link, put_markdown
 from pywebio.session import info as session_info
 
 from config_manager import Config
@@ -116,6 +116,11 @@ def index():
     put_link("填写反馈表单", url="https://wenjuan.feishu.cn/m?t=sFAVCWGHdDzi-x0b0", new_window=True)
 
     SetFooter(f"Version：{Config()['basic_data/version']} {Config()['basic_data/footer_content']}")
+
+    if Config()["notification/enable"]:
+        AddRunLog(4, f"展示了公告信息，标题：{Config()['notification/title']}")
+        popup(title=Config()["notification/title"], content=Config()["notification/content"],
+              size="large", closable=Config()["notification/closable"])
 
 
 AddRunLog(3, "启动服务......")
