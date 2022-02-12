@@ -170,16 +170,11 @@ def ShowSummary(basic_data: Dict, articles_data: DataFrame, wordcloud_pic_path: 
         put_text("来看看你的发文趋势图吧：")
 
         with put_loading():
-            # 构建文章数据中已有月份的数据
-            data = dict(articles_data.groupby("month").count()["title"])
-            # 用 0 填充缺失的月份数据
-            for month in range(1, 13):
-                if not data.get(month):
-                    data[month] = 0
+            # 构建发文数据，缺失值用 0 填充
+            data = dict(zip(range(1, 13), [0] * 11))
+            data.update(articles_data.groupby("month").count()["title"])
             # 对数据进行排序
-            data = list(data.items())
-            data = sorted(data, key=lambda x: x[0])
-            data = dict(data)
+            data = dict(sorted(data.items(), key=lambda x: x[0]))
             # 转换数据集格式
             data = go.Scatter(x=tuple(data.keys()), y=tuple(data.values()))
             # 生成图表
@@ -194,21 +189,18 @@ def ShowSummary(basic_data: Dict, articles_data: DataFrame, wordcloud_pic_path: 
         put_text("互动量趋势图也有哦：")
 
         with put_loading():
-            # 构建文章数据中已有月份的数据
-            likes_data = dict(articles_data.groupby("month").sum()["likes_count"])
-            comments_data = dict(articles_data.groupby("month").sum()["comments_count"])
-            rewards_data = dict(articles_data.groupby("month").sum()["rewards_count"])
-            # 用 0 填充缺失的月份数据
-            datas = [likes_data, comments_data, rewards_data]
-            for data in datas:
-                for month in range(1, 13):
-                    if not data.get(month):
-                        data[month] = 0
+            # 构建互动数据，缺失值用 0 填充
+            likes_data = dict(zip(range(1, 13), [0] * 12))
+            comments_data = dict(zip(range(1, 13), [0] * 12))
+            rewards_data = dict(zip(range(1, 13), [0] * 12))
+            likes_data.update(articles_data.groupby("month").sum()["likes_count"])
+            comments_data.update(articles_data.groupby("month").sum()["comments_count"])
+            rewards_data.update(articles_data.groupby("month").sum()["rewards_count"])
             # 对数据进行排序
+            datas = [likes_data, comments_data, rewards_data]
             for index, data in enumerate(datas):
-                data = list(data.items())
-                data = sorted(data, key=lambda x: x[0])
-                datas[index] = dict(data)
+                data = dict(sorted(data.items(), key=lambda x: x[0]))
+                datas[index] = data
             # 转换数据集格式
             datas_name = ("获赞量", "评论量", "打赏量")
             for index, data in enumerate(datas):
@@ -230,16 +222,11 @@ def ShowSummary(basic_data: Dict, articles_data: DataFrame, wordcloud_pic_path: 
         article_data_copy["release_time"] = article_data_copy["release_time"].apply(lambda x: f"{datetime.fromisoformat(x).hour}:00:00")
         article_data_copy["release_time"] = pd_to_datetime(article_data_copy["release_time"], format="%H:%M:%S")
         article_data_copy.set_index("release_time", inplace=True)  # 将发布时间设为索引
-        data = dict(article_data_copy.resample("H").count()["aid"])  # 将时间数据按小时分组并转化成字典
-        data = {key.hour: value for key, value in data.items()}  # 将数据转换为字典，键为时间，值为发布文章数
-        # 补全缺失的时间数据
-        for time in range(24):
-            if not data.get(time):
-                data[time] = 0
+        # 构建发文时间数据，缺失值用 0 填充
+        data = dict(zip(range(1, 24), [0] * 24))
+        data.update({key.hour: value for key, value in dict(article_data_copy.resample("H").count()["aid"]).items()})
         # 对数据进行排序
-        data = list(data.items())
-        data = sorted(data, key=lambda x: x[0])
-        data = dict(data)
+        data = dict(sorted(data.items(), key=lambda x: x[0]))
         # 转换数据集格式
         data = go.Scatter(x=tuple(data.keys()), y=tuple(data.values()))
         # 生成图表
