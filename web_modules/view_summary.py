@@ -128,7 +128,7 @@ def ShowSummary(basic_data: Dict, articles_data: DataFrame, wordcloud_pic_path: 
 
     with use_scope("output"):
         put_text(f"今年，你写下了 {articles_data['aslug'].count()} 篇文章，{round(articles_data['wordage'].sum() / 10000, 1)} 万字。")
-        put_text(f"这一年，你写的文章，占总文章数的 {round(articles_data['aslug'].count() / basic_data['articles_count'], 2) * 100}%。")
+        put_text(f"这一年，你写的文章，占总文章数的 {round(articles_data['aslug'].count() / basic_data['articles_count'] * 100, 2)}%。")
 
         if articles_data["aslug"].count() < 5:
             put_text("期待在新的一年中看到你的更多文章！")
