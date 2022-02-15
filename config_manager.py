@@ -59,7 +59,8 @@ _DEFAULT_CONFIG = {
       "email": ""
     },
     "perf": {
-        "enable_jieba_parallel": True
+        "enable_jieba_parallel": True,
+        "data_getters_max_count": 5
     }
 }
 
