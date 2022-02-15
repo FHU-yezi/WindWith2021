@@ -67,8 +67,13 @@ def GetUserArticleData(user_url: str) -> DataFrame:
                     if not item["is_top"]:
                         break  # 非置顶文章的发布时间早于 2021 年，则不再继续查询
                 else:  # 文章发布时间在 2021 年内
-                    item["wordage"] = GetArticleWordage(ArticleSlugToArticleUrl(item["aslug"]), disable_check=True)
-                    result = result.append(item, ignore_index=True, sort=False)  # 将新的文章追加到 DataFrame 中
+                    try:
+                        item["wordage"] = GetArticleWordage(ArticleSlugToArticleUrl(item["aslug"]), disable_check=True)
+                    except IndexError as e:  # 极少数概率下会由于请求的文章状态异常导致报错，此时跳过该文章的信息获取
+                        AddRunLog(2, f"获取 {user_url} 的文章：{ArticleSlugToArticleUrl(item['aslug'])} 信息时发生错误：{e}，已跳过该文章")
+                        continue
+                    else:
+                        result = result.append(item, ignore_index=True, sort=False)  # 将新的文章追加到 DataFrame 中
         except HTTPError as e:
             fail_times += 1
             AddRunLog(2, f"获取 {user_url} 的文章信息时发生错误：{e}，这是第 {fail_times} 次出错，10 秒后重试")
