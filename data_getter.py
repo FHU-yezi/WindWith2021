@@ -1,4 +1,5 @@
 from collections import Counter
+from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime
 from os import mkdir, path
 from sys import platform as sys_platform
@@ -20,6 +21,8 @@ from wordcloud import WordCloud
 from yaml import dump as yaml_dump
 
 from config_manager import Config
+from db_config import User
+from concurrent.futures import TimeoutError
 from exceptions import (GetUserArticleDataException, GetUserBasicDataException,
                         GetUserWordCloudException, QueueEmptyException)
 from log_manager import AddRunLog
@@ -67,8 +70,13 @@ def GetUserArticleData(user_url: str) -> DataFrame:
                     if not item["is_top"]:
                         break  # 非置顶文章的发布时间早于 2021 年，则不再继续查询
                 else:  # 文章发布时间在 2021 年内
-                    item["wordage"] = GetArticleWordage(ArticleSlugToArticleUrl(item["aslug"]), disable_check=True)
-                    result = result.append(item, ignore_index=True, sort=False)  # 将新的文章追加到 DataFrame 中
+                    try:
+                        item["wordage"] = GetArticleWordage(ArticleSlugToArticleUrl(item["aslug"]), disable_check=True)
+                    except IndexError as e:  # 极少数概率下会由于请求的文章状态异常导致报错，此时跳过该文章的信息获取
+                        AddRunLog(2, f"获取 {user_url} 的文章：{ArticleSlugToArticleUrl(item['aslug'])} 信息时发生错误：{e}，已跳过该文章")
+                        continue
+                    else:
+                        result = result.append(item, ignore_index=True, sort=False)  # 将新的文章追加到 DataFrame 中
         except HTTPError as e:
             fail_times += 1
             AddRunLog(2, f"获取 {user_url} 的文章信息时发生错误：{e}，这是第 {fail_times} 次出错，10 秒后重试")
@@ -158,57 +166,77 @@ def GetUserWordcloud(articles_list: List[str], user_slug: str) -> None:
         )
 
 
+def GetDataJob(user: User):
+    user_slug = UserUrlToUserSlug(user.user_url)
+
+    if not path.exists(f"user_data/{user_slug}"):  # 避免获取到中途时服务重启导致文件夹已存在报错
+        mkdir(f"user_data/{user_slug}")
+
+    AddRunLog(3, f"开始执行 {user.user_url}（{user.user_name}）的数据获取任务")
+
+    AddRunLog(4, f"开始获取 {user.user_url}（{user.user_name}）的基础数据")
+    try:
+        basic_data = GetUserBasicData(user.user_url)
+    except GetUserBasicDataException as e:
+        AddRunLog(1, f"获取 {user.user_url}（{user.user_name}）的基础数据时发生错误：{e}")
+        SetUserStatusFailed(user.user_url, str(e))
+        return  # 终止运行
+    else:
+        with open(f"user_data/{user_slug}/basic_data_{user_slug}.yaml", "w", encoding="utf-8") as f:
+            yaml_dump(basic_data, f, indent=4, allow_unicode=True)
+        AddRunLog(4, f"获取 {user.user_url}（{user.user_name}）的基础数据完成")
+
+    AddRunLog(4, f"开始获取 {user.user_url}（{user.user_name}）的文章数据")
+    try:
+        article_data = GetUserArticleData(user.user_url)
+    except GetUserArticleDataException as e:
+        AddRunLog(1, f"获取 {user.user_url}（{user.user_name}）的文章数据时发生错误：{e}")
+        SetUserStatusFailed(user.user_url, str(e))
+        return  # 终止运行
+    else:
+        article_data.to_csv(f"user_data/{user_slug}/article_data_{user_slug}.csv", index=False)
+        AddRunLog(4, f"获取 {user.user_url}（{user.user_name}）的文章数据完成，共 {len(article_data)} 条")
+
+    AddRunLog(4, f"开始为 {user.user_url}（{user.user_name}）生成词云图")
+    try:
+        wordcloud_img = GetUserWordcloud((ArticleSlugToArticleUrl(x) for x in list(article_data["aslug"])), user_slug)
+    except GetUserWordCloudException as e:
+        AddRunLog(1, f"为 {user.user_url}（{user.user_name}）生成词云图时发生错误：{e}")
+        SetUserStatusFailed(user.user_url, str(e))
+        return  # 终止运行
+    else:
+        wordcloud_img.to_file(f"user_data/{user_slug}/wordcloud_{user_slug}.png")
+        AddRunLog(4, f"为 {user.user_url}（{user.user_name}）生成词云图成功")
+
+    ProcessFinished(user.user_url)  # 如果数据获取完整，就将用户状态改为 3，表示已完成数据获取
+    AddRunLog(3, f"{user.user_url}（{user.user_name}）的数据获取任务执行完毕")
+    AddRunLog(4, f"{user.user_url}（{user.user_name}）的数据获取线程结束运行")
+
+
 def main():
+    pool = ThreadPoolExecutor(max_workers=Config()["perf/data_getters_max_count"], thread_name_prefix="data_getter-")
+    futures = []
+    AddRunLog(4, f"数据获取线程池创建成功，最大线程数：{Config()['perf/data_getters_max_count']}")
     while True:
         try:
+            for user, future in futures[:]:  # 创建拷贝，防止删除元素导致迭代出错
+                try:
+                    exception_obj = future.exception(timeout=0)  # 获取数据获取线程引发的异常
+                except TimeoutError:  # 该线程还未执行完毕
+                    continue
+                else:
+                    if exception_obj:
+                        AddRunLog(1, f"{user.user_url}（{user.user_name}）的数据获取线程中出现未捕获的异常：{exception_obj}")
+                        SetUserStatusFailed(user.user_url, "数据获取过程中的未知异常")  # 将用户状态设置为失败
+                    futures.remove((user, future))  # 将 Future 对象从列表中移除
             user = GetOneToProcess()
         except QueueEmptyException:
             sleep(0.3)  # 队列为空，等待一段时间
             continue
         else:
-            user_slug = UserUrlToUserSlug(user.user_url)
-
-        if not path.exists(f"user_data/{user_slug}"):  # 避免获取到中途时服务重启导致文件夹已存在报错
-            mkdir(f"user_data/{user_slug}")
-
-        AddRunLog(3, f"开始执行 {user.user_url}（{user.user_name}）的数据获取任务")
-
-        AddRunLog(4, f"开始获取 {user.user_url}（{user.user_name}）的基础数据")
-        try:
-            basic_data = GetUserBasicData(user.user_url)
-        except GetUserBasicDataException as e:
-            AddRunLog(1, f"获取 {user.user_url}（{user.user_name}）的基础数据时发生错误：{e}")
-            SetUserStatusFailed(user.user_url, str(e))
-            continue
-        else:
-            with open(f"user_data/{user_slug}/basic_data_{user_slug}.yaml", "w", encoding="utf-8") as f:
-                yaml_dump(basic_data, f, indent=4, allow_unicode=True)
-            AddRunLog(4, f"获取 {user.user_url}（{user.user_name}）的基础数据完成")
-
-        AddRunLog(4, f"开始获取 {user.user_url}（{user.user_name}）的文章数据")
-        try:
-            article_data = GetUserArticleData(user.user_url)
-        except GetUserArticleDataException as e:
-            AddRunLog(1, f"获取 {user.user_url}（{user.user_name}）的文章数据时发生错误：{e}")
-            SetUserStatusFailed(user.user_url, str(e))
-            continue
-        else:
-            article_data.to_csv(f"user_data/{user_slug}/article_data_{user_slug}.csv", index=False)
-            AddRunLog(4, f"获取 {user.user_url}（{user.user_name}）的文章数据完成，共 {len(article_data)} 条")
-
-        AddRunLog(4, f"开始为 {user.user_url}（{user.user_name}）生成词云图")
-        try:
-            wordcloud_img = GetUserWordcloud((ArticleSlugToArticleUrl(x) for x in list(article_data["aslug"])), user_slug)
-        except GetUserWordCloudException as e:
-            AddRunLog(1, f"为 {user.user_url}（{user.user_name}）生成词云图时发生错误：{e}")
-            SetUserStatusFailed(user.user_url, str(e))
-            continue
-        else:
-            wordcloud_img.to_file(f"user_data/{user_slug}/wordcloud_{user_slug}.png")
-            AddRunLog(4, f"为 {user.user_url}（{user.user_name}）生成词云图成功")
-
-        ProcessFinished(user.user_url)  # 如果数据获取完整，就将用户状态改为 3，表示已完成数据获取
-        AddRunLog(3, f" {user.user_url}（{user.user_name}）的数据获取任务执行完毕")
+            future = pool.submit(GetDataJob, user)
+            futures.append((user, future))
+            AddRunLog(4, f"启动了新的数据获取线程：{user.user_url}（{user.user_name}）")
 
 
 def init():
