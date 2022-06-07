@@ -44,7 +44,7 @@ def ExportArticleData(format: str) -> None:
         with use_scope("data_input", clear=True):
             put_input("user_url", type=TEXT, label="您的简书用户主页链接")
             put_button("提交", color="success", onclick=ExportArticleData, disabled=True)  # 禁用提交按钮
-        put_link("点击前往排队页面", url=f"{GetUrl().replace('?app=ViewSummary', '')}?app=JoinQueue")
+        put_link("点击前往排队页面", url=f"{GetUrl()}?app=JoinQueue")
         AddRunLog(4, f"{user_url}（{user_name}）未排队")
         return
     except UserDataDoesNotReadyException:

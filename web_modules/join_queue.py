@@ -62,7 +62,7 @@ def JoinQueueAction():
         with use_scope("submit_button", clear=True):
             put_button("提交", color="success", disabled=True, onclick=JoinQueueAction)  # 禁用按钮，防止用户重复点击
         put_text(f"{user_name}，您已成功排队，请耐心等待。")
-        put_link("点击前往您的年度总结", url=f"{GetUrl().replace('?app=JoinQueue', '')}?app=ViewSummary")
+        put_link("点击前往您的年度总结", url=f"{GetUrl()}?app=ViewSummary")
 
 
 def JoinQueue():
