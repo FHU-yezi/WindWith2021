@@ -6,8 +6,6 @@ from pywebio.session import info as session_info
 from config_manager import Config
 from data_getter import init as data_getter_init
 from log_manager import AddRunLog, AddViewLog
-from message_sender import init as message_send_init
-from status_monitor import init as status_monitor_init
 from web_modules.article_data_export import ArticleDataExport
 from web_modules.join_queue import JoinQueue
 from web_modules.letter_to_jianshuers import LetterToJianshuers
@@ -20,12 +18,6 @@ AddRunLog(3, f"版本号：{Config()['basic_data/version']}")
 
 data_getter_init()
 AddRunLog(3, "数据获取线程启动成功")
-
-message_send_init()
-AddRunLog(3, "消息发送线程启动成功")
-
-status_monitor_init()
-AddRunLog(3, "状态监控线程启动成功")
 
 set_cache_status(False)
 AddRunLog(4, "已禁用 JRT 缓存")

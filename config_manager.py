@@ -29,35 +29,6 @@ _DEFAULT_CONFIG = {
         "title": None,
         "content": None
     },
-    "status_monitor": {
-        "enable_status_monitor": True,
-        "memory_percent_warn": 0.7,
-        "memory_percent_error": 0.8,
-        "disk_percent_warn": 0.8,
-        "disk_percent_error": 0.9,
-        "user_to_process_warn": 30,
-        "user_to_process_error": 50,
-        "user_failed_warn": 5,
-        "user_failed_error": 10,
-        "views_count_last_60_seconds_warn": 60,
-        "views_count_last_60_seconds_error": 100,
-        "views_count_last_5_minutes_warn": 200,
-        "views_count_last_5_minutes_error": 300,
-        "views_count_last_30_minutes_warn": 1500,
-        "views_count_last_30_minutes_error": 2000,
-        "warns_count_last_5_minutes_warn": 10,
-        "warns_count_last_5_minutes_error": 20,
-        "errors_count_last_5_minutes_warn": 3,
-        "errors_count_last_5_minutes_error": 5,
-        "criticals_count_last_5_minutes_warn": 1,
-        "criticals_count_last_5_minutes_error": 3,
-    },
-    "message": {
-      "enable_message_sender": True,
-      "app_id": "",
-      "app_secret": "",
-      "email": ""
-    },
     "perf": {
         "enable_jieba_parallel": True,
         "data_getters_max_count": 5
