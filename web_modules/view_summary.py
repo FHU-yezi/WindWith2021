@@ -177,7 +177,7 @@ def ShowSummary(basic_data: Dict, articles_data: DataFrame, wordcloud_pic_path: 
             figure = (
                 Line()
                 .add_xaxis([f"{x} 月" for x in data.keys()])
-                .add_yaxis("", [str(x) for x in data.values()])
+                .add_yaxis("", [str(x) for x in data.values()], is_smooth=True)
                 .set_global_opts(
                     title_opts=opts.TitleOpts(title="文章发布数量趋势"),
                     xaxis_opts=opts.AxisOpts(name="月份"),
@@ -208,9 +208,9 @@ def ShowSummary(basic_data: Dict, articles_data: DataFrame, wordcloud_pic_path: 
             figure = (
                 Line()
                 .add_xaxis([f"{x} 月" for x in datas["获赞量"].keys()])
-                .add_yaxis("获赞量", [str(x) for x in datas["获赞量"].values()])
-                .add_yaxis("评论量", [str(x) for x in datas["评论量"].values()])
-                .add_yaxis("打赏量", [str(x) for x in datas["打赏量"].values()])
+                .add_yaxis("获赞量", [str(x) for x in datas["获赞量"].values()], is_smooth=True)
+                .add_yaxis("评论量", [str(x) for x in datas["评论量"].values()], is_smooth=True)
+                .add_yaxis("打赏量", [str(x) for x in datas["打赏量"].values()], is_smooth=True)
                 .set_global_opts(
                     title_opts=opts.TitleOpts(title="互动量趋势"),
                     xaxis_opts=opts.AxisOpts(name="月份"),
@@ -237,7 +237,7 @@ def ShowSummary(basic_data: Dict, articles_data: DataFrame, wordcloud_pic_path: 
         figure = (
             Line()
             .add_xaxis([f"{x} 点" for x in data.keys()])
-            .add_yaxis("", [str(x) for x in data.values()])
+            .add_yaxis("", [str(x) for x in data.values()], is_smooth=True)
             .set_global_opts(
                 title_opts=opts.TitleOpts(title="发文时间分布"),
                 xaxis_opts=opts.AxisOpts(name="时间"),
