@@ -1,4 +1,4 @@
-from config_manager import Config
+from config_manager import config
 from log_manager import AddViewLog
 from pywebio.output import put_markdown
 from pywebio.session import info as session_info
@@ -14,4 +14,4 @@ def LetterToJianshuers():
     with open("letter_to_jianshuers.md", "r", encoding="utf-8") as f:
         put_markdown(f.read())
 
-    SetFooter(f"Version：{Config()['basic_data/version']} {Config()['basic_data/footer_content']}")
+    SetFooter(f"Version：{config['basic_data/version']} {config['basic_data/footer_content']}")

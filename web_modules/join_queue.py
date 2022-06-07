@@ -1,4 +1,4 @@
-from config_manager import Config
+from config_manager import config
 from exceptions import (QueueFullException, UserAlreadyExistsException,
                         UserBannedException)
 from JianshuResearchTools.exceptions import InputError, ResourceError
@@ -76,4 +76,4 @@ def JoinQueue():
     with use_scope("submit_button", clear=True):
         put_button("提交", color="success", onclick=JoinQueueAction)
 
-    SetFooter(Config()["basic_data/footer_content"])
+    SetFooter(config["basic_data/footer_content"])

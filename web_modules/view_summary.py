@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import Dict
 
-from config_manager import Config
+from config_manager import config
 from exceptions import (UserDataDoesNotReadyException, UserDataException,
                         UserDoesNotExistException)
 from JianshuResearchTools.convert import UserUrlToUserSlug
@@ -375,9 +375,9 @@ def GetAllData() -> None:
         AddRunLog(4, f"{user.user_url}（{user.user_name}）的数据已就绪")
         user_slug = UserUrlToUserSlug(user.user_url)
 
-        basic_data_path = f"{Config()['service/data_path']}/user_data/{user_slug}/basic_data_{user_slug}.yaml"
-        articles_data_path = f"{Config()['service/data_path']}/user_data/{user_slug}/article_data_{user_slug}.csv"
-        wordcloud_pic_path = f"{Config()['service/data_path']}/user_data/{user_slug}/wordcloud_{user_slug}.png"
+        basic_data_path = f"{config['service/data_path']}/user_data/{user_slug}/basic_data_{user_slug}.yaml"
+        articles_data_path = f"{config['service/data_path']}/user_data/{user_slug}/article_data_{user_slug}.csv"
+        wordcloud_pic_path = f"{config['service/data_path']}/user_data/{user_slug}/wordcloud_{user_slug}.png"
 
         with open(basic_data_path, "r", encoding="utf-8") as f:
             basic_data = yaml_load(f, SafeLoader)
@@ -408,4 +408,4 @@ def ViewSummary():
         put_input("user_url", type=TEXT, value=user_url, label="您的简书用户主页链接")
         put_button("提交", color="success", onclick=GetAllData)
 
-    SetFooter(Config()["basic_data/footer_content"])
+    SetFooter(config["basic_data/footer_content"])
