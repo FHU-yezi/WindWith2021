@@ -19,7 +19,7 @@ def GetUrl() -> str:
     """
     获取当前 URL
     """
-    return eval_js("window.location.href")
+    return eval_js("window.location.href").split("?")[0]
 
 
 def SetLocalStorage(key: str, value: str) -> None:
