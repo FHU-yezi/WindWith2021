@@ -10,7 +10,8 @@ _DEFAULT_CONFIG = {
         "footer_content": "Made with PyWebIO and ♥"
     },
     "service": {
-        "port": 80
+        "port": 80,
+        "data_path": "./"
     },
     "debug": {
         "enable_debug": False,
@@ -32,7 +33,7 @@ _DEFAULT_CONFIG = {
     "perf": {
         "enable_jieba_parallel": True,
         "data_getters_max_count": 5
-    }
+    },
 }
 
 

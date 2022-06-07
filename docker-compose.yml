@@ -1,0 +1,24 @@
+version: "3"
+
+volumes:
+  WW2021Data:
+
+services:
+  main:
+    image: windwith2021:1.4.0
+    build: .
+    ports:
+      - "8603:8603"
+    volumes:
+      - "./config.yaml:/app/config.yaml"
+      - "./banned.yaml:/app/banned.yaml"
+      - "WW2021Data:/data"
+    deploy:
+      resources:
+        limits:
+          memory: 192M
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+    stop_grace_period: 1s

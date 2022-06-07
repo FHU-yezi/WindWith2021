@@ -49,8 +49,8 @@ if Config()["word_split/enable_hotwords"]:
 else:
     AddRunLog(2, "由于配置文件设置，热点词功能已禁用")
 
-if not path.exists("user_data"):
-    mkdir("user_data")
+if not path.exists(f"{Config()['service/data_path']}/user_data"):
+    mkdir(f"{Config()['service/data_path']}/user_data")
 
 
 def GetUserArticleData(user_url: str) -> DataFrame:
@@ -168,8 +168,8 @@ def GetUserWordcloud(articles_list: List[str], user_slug: str) -> WordCloud:
 def GetDataJob(user: User):
     user_slug = UserUrlToUserSlug(user.user_url)
 
-    if not path.exists(f"user_data/{user_slug}"):  # 避免获取到中途时服务重启导致文件夹已存在报错
-        mkdir(f"user_data/{user_slug}")
+    if not path.exists(f"{Config()['service/data_path']}/user_data/{user_slug}"):  # 避免获取到中途时服务重启导致文件夹已存在报错
+        mkdir(f"{Config()['service/data_path']}/user_data/{user_slug}")
 
     AddRunLog(3, f"开始执行 {user.user_url}（{user.user_name}）的数据获取任务")
 
@@ -181,7 +181,7 @@ def GetDataJob(user: User):
         SetUserStatusFailed(user.user_url, str(e))
         return  # 终止运行
     else:
-        with open(f"user_data/{user_slug}/basic_data_{user_slug}.yaml", "w", encoding="utf-8") as f:
+        with open(f"{Config()['service/data_path']}/user_data/{user_slug}/basic_data_{user_slug}.yaml", "w", encoding="utf-8") as f:
             yaml_dump(basic_data, f, indent=4, allow_unicode=True)
         AddRunLog(4, f"获取 {user.user_url}（{user.user_name}）的基础数据完成")
 
@@ -193,7 +193,7 @@ def GetDataJob(user: User):
         SetUserStatusFailed(user.user_url, str(e))
         return  # 终止运行
     else:
-        article_data.to_csv(f"user_data/{user_slug}/article_data_{user_slug}.csv", index=False)
+        article_data.to_csv(f"{Config()['service/data_path']}//user_data/{user_slug}/article_data_{user_slug}.csv", index=False)
         AddRunLog(4, f"获取 {user.user_url}（{user.user_name}）的文章数据完成，共 {len(article_data)} 条")
 
     AddRunLog(4, f"开始为 {user.user_url}（{user.user_name}）生成词云图")
@@ -204,7 +204,7 @@ def GetDataJob(user: User):
         SetUserStatusFailed(user.user_url, str(e))
         return  # 终止运行
     else:
-        wordcloud_img.to_file(f"user_data/{user_slug}/wordcloud_{user_slug}.png")
+        wordcloud_img.to_file(f"{Config()['service/data_path']}//user_data/{user_slug}/wordcloud_{user_slug}.png")
         AddRunLog(4, f"为 {user.user_url}（{user.user_name}）生成词云图成功")
 
     ProcessFinished(user.user_url)  # 如果数据获取完整，就将用户状态改为 3，表示已完成数据获取

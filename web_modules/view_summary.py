@@ -375,9 +375,9 @@ def GetAllData() -> None:
         AddRunLog(4, f"{user.user_url}（{user.user_name}）的数据已就绪")
         user_slug = UserUrlToUserSlug(user.user_url)
 
-        basic_data_path = f"user_data/{user_slug}/basic_data_{user_slug}.yaml"
-        articles_data_path = f"user_data/{user_slug}/article_data_{user_slug}.csv"
-        wordcloud_pic_path = f"user_data/{user_slug}/wordcloud_{user_slug}.png"
+        basic_data_path = f"{Config()['service/data_path']}/user_data/{user_slug}/basic_data_{user_slug}.yaml"
+        articles_data_path = f"{Config()['service/data_path']}/user_data/{user_slug}/article_data_{user_slug}.csv"
+        wordcloud_pic_path = f"{Config()['service/data_path']}/user_data/{user_slug}/wordcloud_{user_slug}.png"
 
         with open(basic_data_path, "r", encoding="utf-8") as f:
             basic_data = yaml_load(f, SafeLoader)

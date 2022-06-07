@@ -1,6 +1,8 @@
 from peewee import (BooleanField, CharField, DateTimeField, IntegerField,
                     Model, SqliteDatabase)
 
+from config_manager import Config
+
 
 class RunLog(Model):
     id = IntegerField(primary_key=True)
@@ -9,7 +11,7 @@ class RunLog(Model):
     message = CharField()
 
     class Meta:
-        database = SqliteDatabase("log.db")
+        database = SqliteDatabase(f"{Config()['service/data_path']}/log.db")
 
 
 class ViewLog(Model):
@@ -26,7 +28,7 @@ class ViewLog(Model):
     ip = CharField()
 
     class Meta:
-        database = SqliteDatabase("log.db")
+        database = SqliteDatabase(f"{Config()['service/data_path']}/log.db")
 
 
 """
@@ -52,7 +54,7 @@ class User(Model):
     exception_description = CharField(null=True)
 
     class Meta:
-        database = SqliteDatabase("userdata.db")
+        database = SqliteDatabase(f"{Config()['service/data_path']}/userdata.db")
         table_name = "user_queue"
 
 
