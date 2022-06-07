@@ -1,3 +1,4 @@
+from JianshuResearchTools.objects import set_cache_status
 from pywebio import start_server
 from pywebio.output import popup, put_link, put_markdown
 from pywebio.session import info as session_info
@@ -25,6 +26,9 @@ AddRunLog(3, "消息发送线程启动成功")
 
 status_monitor_init()
 AddRunLog(3, "状态监控线程启动成功")
+
+set_cache_status(False)
+AddRunLog(4, "已禁用 JRT 缓存")
 
 
 def index():
@@ -123,5 +127,14 @@ def index():
               size="large", closable=Config()["notification/closable"])
 
 
+SERVICES = [
+    JoinQueue,
+    ViewSummary,
+    ArticleDataExport,
+    LetterToJianshuers,
+    Thanks,
+    index
+]
+
 AddRunLog(3, "启动服务......")
-start_server([JoinQueue, ViewSummary, ArticleDataExport, LetterToJianshuers, Thanks, index], port=Config()["service/port"])
+start_server(SERVICES, port=Config()["service/port"])

@@ -5,11 +5,9 @@ import plotly.graph_objs as go
 from config_manager import Config
 from exceptions import (UserDataDoesNotReadyException, UserDataException,
                         UserDoesNotExistException)
-from JianshuResearchTools.assert_funcs import (AssertUserStatusNormal,
-                                               AssertUserUrl)
 from JianshuResearchTools.convert import UserUrlToUserSlug
 from JianshuResearchTools.exceptions import InputError, ResourceError
-from JianshuResearchTools.user import GetUserName
+from JianshuResearchTools.objects import User
 from log_manager import AddRunLog, AddViewLog
 from pandas import DataFrame, read_csv
 from pandas import to_datetime as pd_to_datetime
@@ -319,20 +317,19 @@ def ShowSummary(basic_data: Dict, articles_data: DataFrame, wordcloud_pic_path: 
 
 
 def GetAllData() -> None:
-    user_url = CleanUserUrl(pin["user_url"])  # 从输入框中获取 user_url
+    user_url = CleanUserUrl(pin.user_url)  # 从输入框中获取 user_url
     if not user_url:  # 输入框为空
         return
 
     try:
         AddRunLog(4, f"开始对 {user_url} 进行校验")
-        AssertUserUrl(user_url)
-        AssertUserStatusNormal(user_url)
+        user = User(user_url)
     except (InputError, ResourceError):
         toast("输入的链接无效，请检查", color="warn")
         AddRunLog(4, f"{user_url} 无效")
         return
     else:
-        user_name = GetUserName(user_url, disable_check=True)
+        user_name = user.name
         AddRunLog(4, f"{user_url} 有效")
 
     try:

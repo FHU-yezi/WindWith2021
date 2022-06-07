@@ -1,5 +1,5 @@
 from collections import Counter
-from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import ThreadPoolExecutor, TimeoutError
 from datetime import datetime
 from os import mkdir, path
 from sys import platform as sys_platform
@@ -22,7 +22,6 @@ from yaml import dump as yaml_dump
 
 from config_manager import Config
 from db_config import User
-from concurrent.futures import TimeoutError
 from exceptions import (GetUserArticleDataException, GetUserBasicDataException,
                         GetUserWordCloudException, QueueEmptyException)
 from log_manager import AddRunLog
@@ -130,7 +129,7 @@ def GetUserBasicData(user_url: str) -> Dict:
     return result
 
 
-def GetUserWordcloud(articles_list: List[str], user_slug: str) -> None:
+def GetUserWordcloud(articles_list: List[str], user_slug: str) -> WordCloud:
     allow_word_types = ("Ag", "a", "ad", "an", "dg", "g",
                         "i", "j", "l", "Ng", "n", "nr",
                         "ns", "nt", "nz", "tg", "vg", "v",

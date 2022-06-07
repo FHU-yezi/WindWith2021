@@ -6,7 +6,6 @@ from pywebio.session import info
 from config_manager import Config
 from db_config import RunLog, ViewLog
 
-
 LEVEL_INT_TO_TEXT = {
     0: "CRITICAL",
     1: "ERROR",
