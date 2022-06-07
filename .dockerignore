@@ -1,0 +1,12 @@
+.git/
+__pycache__/
+.mypy/
+user_data/
+userdata.db
+log.db
+config.yaml
+banned.yaml
+
+# .dockerignore 文件默认会继承 .gitignore 文件中的内容
+# 但 font.otf 是服务运行所必须的，将其强制添加到容器中
+!font.otf

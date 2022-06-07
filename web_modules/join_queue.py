@@ -1,10 +1,8 @@
-from config_manager import Config
+from config_manager import config
 from exceptions import (QueueFullException, UserAlreadyExistsException,
                         UserBannedException)
-from JianshuResearchTools.assert_funcs import (AssertUserStatusNormal,
-                                               AssertUserUrl)
 from JianshuResearchTools.exceptions import InputError, ResourceError
-from JianshuResearchTools.user import GetUserName
+from JianshuResearchTools.objects import User
 from log_manager import AddRunLog, AddViewLog
 from pywebio.input import TEXT
 from pywebio.output import (put_button, put_link, put_markdown, put_text,
@@ -18,20 +16,19 @@ from .utils import (CleanUserUrl, GetLocalStorage, GetUrl, SetFooter,
 
 
 def JoinQueueAction():
-    user_url = CleanUserUrl(pin["user_url"])
+    user_url = CleanUserUrl(pin.user_url)
     if not user_url:
         return  # 不输入链接直接点击按钮时不做任何操作
 
     try:
         AddRunLog(4, f"开始对 {user_url} 进行校验")
-        AssertUserUrl(user_url)
-        AssertUserStatusNormal(user_url)
+        user = User(user_url)
     except (InputError, ResourceError):
         toast("输入的链接无效，请检查", color="warn")
         AddRunLog(4, f"{user_url}无效")
         return
     else:
-        user_name = GetUserName(user_url, disable_check=True)
+        user_name = user.name
         AddRunLog(4, f"{user_url} 校验成功，对应的用户名为 {user_name}")
 
     try:
@@ -79,4 +76,4 @@ def JoinQueue():
     with use_scope("submit_button", clear=True):
         put_button("提交", color="success", onclick=JoinQueueAction)
 
-    SetFooter(Config()["basic_data/footer_content"])
+    SetFooter(config["basic_data/footer_content"])

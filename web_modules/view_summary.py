@@ -1,15 +1,14 @@
 from datetime import datetime
 from typing import Dict
 
-import plotly.graph_objs as go
-from config_manager import Config
+from config_manager import config
 from exceptions import (UserDataDoesNotReadyException, UserDataException,
                         UserDoesNotExistException)
-from JianshuResearchTools.assert_funcs import (AssertUserStatusNormal,
-                                               AssertUserUrl)
 from JianshuResearchTools.convert import UserUrlToUserSlug
+from pyecharts import options as opts
+from pyecharts.charts import Line
 from JianshuResearchTools.exceptions import InputError, ResourceError
-from JianshuResearchTools.user import GetUserName
+from JianshuResearchTools.objects import User
 from log_manager import AddRunLog, AddViewLog
 from pandas import DataFrame, read_csv
 from pandas import to_datetime as pd_to_datetime
@@ -17,7 +16,7 @@ from PIL.Image import open as OpenImage
 from pywebio.input import TEXT
 from pywebio.output import (clear, put_button, put_buttons, put_image,
                             put_link, put_loading, put_table, put_text, toast,
-                            use_scope)
+                            use_scope, put_html)
 from pywebio.pin import pin, put_input
 from pywebio.session import info as session_info
 from queue_manager import GetUserToShowSummary
@@ -175,13 +174,17 @@ def ShowSummary(basic_data: Dict, articles_data: DataFrame, wordcloud_pic_path: 
             data.update(articles_data.groupby("month").count()["title"])
             # 对数据进行排序
             data = dict(sorted(data.items(), key=lambda x: x[0]))
-            # 转换数据集格式
-            data = go.Scatter(x=tuple(data.keys()), y=tuple(data.values()))
-            # 生成图表
-            graph_obj = go.Figure(data=data, layout={"title": "文章发布数量趋势",
-                                                     "xaxis": {"title": "月份"},
-                                                     "yaxis": {"title": "文章数量"}})
-            put_image(graph_obj.to_image(format="png", scale=2.5))
+            figure = (
+                Line()
+                .add_xaxis([f"{x} 月" for x in data.keys()])
+                .add_yaxis("", [str(x) for x in data.values()], is_smooth=True)
+                .set_global_opts(
+                    title_opts=opts.TitleOpts(title="文章发布数量趋势"),
+                    xaxis_opts=opts.AxisOpts(name="月份"),
+                    yaxis_opts=opts.AxisOpts(name="发文数量"),
+                )
+            )
+            put_html(figure.render_notebook())
 
     yield None
 
@@ -197,20 +200,24 @@ def ShowSummary(basic_data: Dict, articles_data: DataFrame, wordcloud_pic_path: 
             comments_data.update(articles_data.groupby("month").sum()["comments_count"])
             rewards_data.update(articles_data.groupby("month").sum()["rewards_count"])
             # 对数据进行排序
-            datas = [likes_data, comments_data, rewards_data]
-            for index, data in enumerate(datas):
-                data = dict(sorted(data.items(), key=lambda x: x[0]))
-                datas[index] = data
-            # 转换数据集格式
-            datas_name = ("获赞量", "评论量", "打赏量")
-            for index, data in enumerate(datas):
-                data_name = datas_name[index]
-                datas[index] = go.Scatter(x=tuple(data.keys()), y=tuple(data.values()), name=data_name)
+            datas = {}
+            datas["获赞量"] = dict(sorted(likes_data.items(), key=lambda x: x[0]))
+            datas["评论量"] = dict(sorted(comments_data.items(), key=lambda x: x[0]))
+            datas["打赏量"] = dict(sorted(rewards_data.items(), key=lambda x: x[0]))
             # 生成图表
-            graph_obj = go.Figure(data=datas, layout={"title": "文章互动量趋势",
-                                                      "xaxis": {"title": "月份"},
-                                                      "yaxis": {"title": "互动量"}})
-            put_image(graph_obj.to_image(format="png", scale=2.5))
+            figure = (
+                Line()
+                .add_xaxis([f"{x} 月" for x in datas["获赞量"].keys()])
+                .add_yaxis("获赞量", [str(x) for x in datas["获赞量"].values()], is_smooth=True)
+                .add_yaxis("评论量", [str(x) for x in datas["评论量"].values()], is_smooth=True)
+                .add_yaxis("打赏量", [str(x) for x in datas["打赏量"].values()], is_smooth=True)
+                .set_global_opts(
+                    title_opts=opts.TitleOpts(title="互动量趋势"),
+                    xaxis_opts=opts.AxisOpts(name="月份"),
+                    yaxis_opts=opts.AxisOpts(name="互动量"),
+                )
+            )
+            put_html(figure.render_notebook())
 
     yield None
 
@@ -227,13 +234,17 @@ def ShowSummary(basic_data: Dict, articles_data: DataFrame, wordcloud_pic_path: 
         data.update({key.hour: value for key, value in dict(article_data_copy.resample("H").count()["aid"]).items()})
         # 对数据进行排序
         data = dict(sorted(data.items(), key=lambda x: x[0]))
-        # 转换数据集格式
-        data = go.Scatter(x=tuple(data.keys()), y=tuple(data.values()))
-        # 生成图表
-        graph_obj = go.Figure(data=data, layout={"title": "发文时间分布",
-                                                 "xaxis": {"title": "小时"},
-                                                 "yaxis": {"title": "发布文章数"}})
-        put_image(graph_obj.to_image(format="png", scale=2.5))
+        figure = (
+            Line()
+            .add_xaxis([f"{x} 点" for x in data.keys()])
+            .add_yaxis("", [str(x) for x in data.values()], is_smooth=True)
+            .set_global_opts(
+                title_opts=opts.TitleOpts(title="发文时间分布"),
+                xaxis_opts=opts.AxisOpts(name="时间"),
+                yaxis_opts=opts.AxisOpts(name="发文数量")
+            )
+        )
+        put_html(figure.render_notebook())
 
     yield None
 
@@ -319,20 +330,19 @@ def ShowSummary(basic_data: Dict, articles_data: DataFrame, wordcloud_pic_path: 
 
 
 def GetAllData() -> None:
-    user_url = CleanUserUrl(pin["user_url"])  # 从输入框中获取 user_url
+    user_url = CleanUserUrl(pin.user_url)  # 从输入框中获取 user_url
     if not user_url:  # 输入框为空
         return
 
     try:
         AddRunLog(4, f"开始对 {user_url} 进行校验")
-        AssertUserUrl(user_url)
-        AssertUserStatusNormal(user_url)
+        user = User(user_url)
     except (InputError, ResourceError):
         toast("输入的链接无效，请检查", color="warn")
         AddRunLog(4, f"{user_url} 无效")
         return
     else:
-        user_name = GetUserName(user_url, disable_check=True)
+        user_name = user.name
         AddRunLog(4, f"{user_url} 有效")
 
     try:
@@ -365,9 +375,9 @@ def GetAllData() -> None:
         AddRunLog(4, f"{user.user_url}（{user.user_name}）的数据已就绪")
         user_slug = UserUrlToUserSlug(user.user_url)
 
-        basic_data_path = f"user_data/{user_slug}/basic_data_{user_slug}.yaml"
-        articles_data_path = f"user_data/{user_slug}/article_data_{user_slug}.csv"
-        wordcloud_pic_path = f"user_data/{user_slug}/wordcloud_{user_slug}.png"
+        basic_data_path = f"{config['service/data_path']}/user_data/{user_slug}/basic_data_{user_slug}.yaml"
+        articles_data_path = f"{config['service/data_path']}/user_data/{user_slug}/article_data_{user_slug}.csv"
+        wordcloud_pic_path = f"{config['service/data_path']}/user_data/{user_slug}/wordcloud_{user_slug}.png"
 
         with open(basic_data_path, "r", encoding="utf-8") as f:
             basic_data = yaml_load(f, SafeLoader)
@@ -398,4 +408,4 @@ def ViewSummary():
         put_input("user_url", type=TEXT, value=user_url, label="您的简书用户主页链接")
         put_button("提交", color="success", onclick=GetAllData)
 
-    SetFooter(Config()["basic_data/footer_content"])
+    SetFooter(config["basic_data/footer_content"])

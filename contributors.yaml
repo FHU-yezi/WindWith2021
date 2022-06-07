@@ -19,8 +19,7 @@ opensource_repo:
     Jieba: https://github.com/fxsjy/jieba
     Pandas: https://github.com/pandas-dev/pandas
     Peewee: https://github.com/coleifer/peewee
-    Plotly: https://github.com/plotly/plotly.py
-    Psutil: https://github.com/giampaolo/psutil
+    PyEcharts: https://github.com/pyecharts/pyecharts
     PyWebIO: https://github.com/pywebio/PyWebIO
     PyYAML: https://github.com/yaml/pyyaml
     WordCloud: https://github.com/fuqiuai/wordCloud

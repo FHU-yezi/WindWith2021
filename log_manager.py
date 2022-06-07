@@ -3,9 +3,8 @@ from datetime import datetime
 from peewee import DatabaseError
 from pywebio.session import info
 
-from config_manager import Config
+from config_manager import config
 from db_config import RunLog, ViewLog
-
 
 LEVEL_INT_TO_TEXT = {
     0: "CRITICAL",
@@ -18,7 +17,7 @@ LEVEL_INT_TO_TEXT = {
 
 def AddRunLog(level: int, message: str):
     RunLog.create(time=datetime.now(), level=level, message=message)
-    if Config()["debug/enable_debug"] and Config()["debug/print_log_level"] >= level:
+    if config["debug/enable_debug"] and config["debug/print_log_level"] >= level:
         print(f"[{datetime.now()}] [{LEVEL_INT_TO_TEXT[level]}] {message}")
 
 

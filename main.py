@@ -1,12 +1,11 @@
+from JianshuResearchTools.objects import set_cache_status
 from pywebio import start_server
 from pywebio.output import popup, put_link, put_markdown
 from pywebio.session import info as session_info
 
-from config_manager import Config
+from config_manager import config
 from data_getter import init as data_getter_init
 from log_manager import AddRunLog, AddViewLog
-from message_sender import init as message_send_init
-from status_monitor import init as status_monitor_init
 from web_modules.article_data_export import ArticleDataExport
 from web_modules.join_queue import JoinQueue
 from web_modules.letter_to_jianshuers import LetterToJianshuers
@@ -14,17 +13,14 @@ from web_modules.thanks import Thanks
 from web_modules.utils import GetLocalStorage, GetUrl, SetFooter
 from web_modules.view_summary import ViewSummary
 
-AddRunLog(3, f"版本号：{Config()['basic_data/version']}")
+AddRunLog(3, f"版本号：{config['basic_data/version']}")
 
 
 data_getter_init()
 AddRunLog(3, "数据获取线程启动成功")
 
-message_send_init()
-AddRunLog(3, "消息发送线程启动成功")
-
-status_monitor_init()
-AddRunLog(3, "状态监控线程启动成功")
+set_cache_status(False)
+AddRunLog(4, "已禁用 JRT 缓存")
 
 
 def index():
@@ -115,13 +111,22 @@ def index():
 
     put_link("填写反馈表单", url="https://wenjuan.feishu.cn/m?t=sFAVCWGHdDzi-x0b0", new_window=True)
 
-    SetFooter(f"Version：{Config()['basic_data/version']} {Config()['basic_data/footer_content']}")
+    SetFooter(f"Version：{config['basic_data/version']} {config['basic_data/footer_content']}")
 
-    if Config()["notification/enable"]:
-        AddRunLog(4, f"展示了公告信息，标题：{Config()['notification/title']}")
-        popup(title=Config()["notification/title"], content=Config()["notification/content"],
-              size="large", closable=Config()["notification/closable"])
+    if config["notification/enable"]:
+        AddRunLog(4, f"展示了公告信息，标题：{config['notification/title']}")
+        popup(title=config["notification/title"], content=config["notification/content"],
+              size="large", closable=config["notification/closable"])
 
+
+SERVICES = [
+    JoinQueue,
+    ViewSummary,
+    ArticleDataExport,
+    LetterToJianshuers,
+    Thanks,
+    index
+]
 
 AddRunLog(3, "启动服务......")
-start_server([JoinQueue, ViewSummary, ArticleDataExport, LetterToJianshuers, Thanks, index], port=Config()["service/port"])
+start_server(SERVICES, port=config["service/port"])
