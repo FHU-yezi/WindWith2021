@@ -1,5 +1,11 @@
-from peewee import (BooleanField, CharField, DateTimeField, IntegerField,
-                    Model, SqliteDatabase)
+from peewee import (
+    BooleanField,
+    CharField,
+    DateTimeField,
+    IntegerField,
+    Model,
+    SqliteDatabase,
+)
 
 from config_manager import config
 

@@ -11,7 +11,7 @@ LEVEL_INT_TO_TEXT = {
     1: "ERROR",
     2: "WARNING",
     3: "INFO",
-    4: "DEBUG"
+    4: "DEBUG",
 }
 
 
@@ -23,16 +23,18 @@ def AddRunLog(level: int, message: str):
 
 def AddViewLog(session_info: info, user_url: str = None, page_name: str = None):
     try:
-        ViewLog.create(time=datetime.now(),
-                       user_url=user_url,
-                       page_name=page_name,
-                       is_mobile=session_info.user_agent.is_mobile,
-                       is_tablet=session_info.user_agent.is_tablet,
-                       is_pc=session_info.user_agent.is_pc,
-                       browser_name=session_info.user_agent.browser.family,
-                       os_name=session_info.user_agent.os.family,
-                       language=session_info.user_language,
-                       ip=session_info.user_ip)
+        ViewLog.create(
+            time=datetime.now(),
+            user_url=user_url,
+            page_name=page_name,
+            is_mobile=session_info.user_agent.is_mobile,
+            is_tablet=session_info.user_agent.is_tablet,
+            is_pc=session_info.user_agent.is_pc,
+            browser_name=session_info.user_agent.browser.family,
+            os_name=session_info.user_agent.os.family,
+            language=session_info.user_language,
+            ip=session_info.user_ip,
+        )
         AddRunLog(4, f"添加了一条新的访问记录，页面为：{page_name}，用户 IP 为：{session_info.user_ip}")
     except DatabaseError:
         AddRunLog(1, "添加访问日志时出错")

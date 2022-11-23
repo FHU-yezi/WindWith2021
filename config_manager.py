@@ -7,37 +7,37 @@ from yaml import load as yaml_load
 _DEFAULT_CONFIG = {
     "basic_data": {
         "version": "0.0.0",
-        "footer_content": "Made with PyWebIO and ♥"
+        "footer_content": "Made with PyWebIO and ♥",
     },
     "service": {
         "port": 80,
-        "data_path": "./"
+        "data_path": "./",
     },
     "debug": {
         "enable_debug": False,
-        "print_log_level": 3
+        "print_log_level": 3,
     },
     "word_split": {
         "enable_stopwords": True,
-        "enable_hotwords": True
+        "enable_hotwords": True,
     },
     "auth": {
-        "enable_banlist": True
+        "enable_banlist": True,
     },
     "notification": {
         "enable": False,
         "closable": True,
         "title": None,
-        "content": None
+        "content": None,
     },
     "perf": {
         "enable_jieba_parallel": True,
-        "data_getters_max_count": 5
+        "data_getters_max_count": 5,
     },
 }
 
 
-class Config():
+class Config:
     def __new__(cls) -> "Config":
         # 单例模式
         if not hasattr(cls, "_instance"):
