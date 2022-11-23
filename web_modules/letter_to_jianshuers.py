@@ -19,5 +19,5 @@ def LetterToJianshuers():
         put_markdown(f.read())
 
     SetFooter(
-        f"Version：{config['basic_data/version']} {config['basic_data/footer_content']}"
+        f"Version：{config.basic_data.version} {config.basic_data.footer_content}"
     )

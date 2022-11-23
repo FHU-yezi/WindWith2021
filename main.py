@@ -13,7 +13,7 @@ from web_modules.thanks import Thanks
 from web_modules.utils import GetLocalStorage, GetUrl, SetFooter
 from web_modules.view_summary import ViewSummary
 
-AddRunLog(3, f"版本号：{config['basic_data/version']}")
+AddRunLog(3, f"版本号：{config.basic_data.version}")
 
 
 data_getter_init()
@@ -111,12 +111,12 @@ def index():
 
     put_link("填写反馈表单", url="https://wenjuan.feishu.cn/m?t=sFAVCWGHdDzi-x0b0", new_window=True)
 
-    SetFooter(f"Version：{config['basic_data/version']} {config['basic_data/footer_content']}")
+    SetFooter(f"Version：{config.basic_data.version} {config.basic_data.footer_content}")
 
-    if config["notification/enable"]:
-        AddRunLog(4, f"展示了公告信息，标题：{config['notification/title']}")
-        popup(title=config["notification/title"], content=config["notification/content"],
-              size="large", closable=config["notification/closable"])
+    if config.notification.enable:
+        AddRunLog(4, f"展示了公告信息，标题：{config.notification.title}")
+        popup(title=config.notification.title, content=config.notification.content,
+              size="large", closable=config.notification.closable)
 
 
 SERVICES = [
@@ -129,4 +129,4 @@ SERVICES = [
 ]
 
 AddRunLog(3, "启动服务......")
-start_server(SERVICES, port=config["service/port"])
+start_server(SERVICES, port=config.service.port)

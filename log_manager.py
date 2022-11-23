@@ -17,7 +17,7 @@ LEVEL_INT_TO_TEXT = {
 
 def AddRunLog(level: int, message: str):
     RunLog.create(time=datetime.now(), level=level, message=message)
-    if config["debug/enable_debug"] and config["debug/print_log_level"] >= level:
+    if config.debug.enable_debug and config.debug.print_log_level >= level:
         print(f"[{datetime.now()}] [{LEVEL_INT_TO_TEXT[level]}] {message}")
 
 

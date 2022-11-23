@@ -35,9 +35,9 @@ queue_length = User.select().where(User.status == 1).count()  # 获取排队中�
 
 def AddToQueue(user_url: str, user_name: str) -> None:
     global queue_length
-    if user_url in banned_list and config["auth/enable_banlist"]:
+    if user_url in banned_list and config.auth.enable_banlist:
         raise UserBannedException(f"{user_url}已被封禁")
-    elif not config["auth/enable_banlist"]:
+    elif not config.auth.enable_banlist:
         AddRunLog(2, f"用户 {user_url}（{user_name}）在封禁列表中，但由于配置文件设置，未对此用户进行拦截")
     if queue_length + 1 > MAX_QUEUE_LENGTH:  # 如果队列已满
         raise QueueFullException("队列已满，请稍后再试")

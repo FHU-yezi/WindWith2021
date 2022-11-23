@@ -117,4 +117,4 @@ def JoinQueue():
     with use_scope("submit_button", clear=True):
         put_button("提交", color="success", onclick=JoinQueueAction)
 
-    SetFooter(config["basic_data/footer_content"])
+    SetFooter(config.basic_data.footer_content)

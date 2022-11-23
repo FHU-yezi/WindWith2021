@@ -17,7 +17,7 @@ class RunLog(Model):
     message = CharField()
 
     class Meta:
-        database = SqliteDatabase(f"{config['service/data_path']}/log.db")
+        database = SqliteDatabase(f"{config.service.data_path}/log.db")
 
 
 class ViewLog(Model):
@@ -34,7 +34,7 @@ class ViewLog(Model):
     ip = CharField()
 
     class Meta:
-        database = SqliteDatabase(f"{config['service/data_path']}/log.db")
+        database = SqliteDatabase(f"{config.service.data_path}/log.db")
 
 
 """
@@ -60,14 +60,14 @@ class User(Model):
     exception_description = CharField(null=True)
 
     class Meta:
-        database = SqliteDatabase(f"{config['service/data_path']}/userdata.db")
+        database = SqliteDatabase(f"{config.service.data_path}/userdata.db")
         table_name = "user_queue"
 
 
-def InitDB():
+def init_DB():
     RunLog.create_table()
     ViewLog.create_table()
     User.create_table()
 
 
-InitDB()  # 导入模块时初始化数据库
+init_DB()  # 导入模块时初始化数据库

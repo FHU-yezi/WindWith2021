@@ -58,5 +58,5 @@ def Thanks():
     put_markdown("同时，感谢每一位简友对「风语」的支持，让这个产品拥有无限可能。")
 
     SetFooter(
-        f"Version：{config['basic_data/version']} {config['basic_data/footer_content']}"
+        f"Version：{config.basic_data.version} {config.basic_data.footer_content}"
     )

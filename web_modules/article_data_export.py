@@ -87,7 +87,7 @@ def ExportArticleData(format: str) -> None:
         AddRunLog(4, f"{user_url}（{user_name}）的数据已就绪")
         user_slug = UserUrlToUserSlug(user.user_url)
 
-        articles_data_path = f"{config['service/data_path']}/user_data/{user_slug}/article_data_{user_slug}.csv"
+        articles_data_path = f"{config.service.data_path}/user_data/{user_slug}/article_data_{user_slug}.csv"
         with open(articles_data_path, "r", encoding="utf-8") as f:
             articles_data: DataFrame = read_csv(f)
         AddRunLog(4, f"成功加载 {user.user_url}（{user.user_name}）的文章数据")
@@ -158,4 +158,4 @@ def ArticleDataExport():
             onclick=lambda: ExportArticleData("csv"),
         )
 
-    SetFooter(config["basic_data/footer_content"])
+    SetFooter(config.basic_data.footer_content)

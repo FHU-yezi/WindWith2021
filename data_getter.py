@@ -36,7 +36,7 @@ from log_manager import AddRunLog
 from queue_manager import GetOneToProcess, ProcessFinished, SetUserStatusFailed
 
 jieba.setLogLevel(jieba.logging.ERROR)  # 关闭 jieba 的日志输出
-if not config["perf/enable_jieba_parallel"]:
+if not config.perf.enable_jieba_parallel:
     AddRunLog(2, "由于配置文件设置，多进程分词已禁用")
 elif sys_platform == "win32":
     AddRunLog(2, "由于当前系统不支持，多进程分词已禁用")
@@ -44,21 +44,21 @@ else:
     AddRunLog(3, "已开启多进程分词")
     jieba.enable_parallel(2)
 
-if config["word_split/enable_stopwords"]:
+if config.word_split.enable_stopwords:
     with open("wordcloud_assets/stopwords.txt", "r", encoding="utf-8") as f:
         STOPWORDS = [x.replace("\n", "") for x in f.readlines()]  # 预加载停用词词库
     AddRunLog(4, "加载停用词成功")
 else:
     AddRunLog(2, "由于配置文件设置，停用词功能已禁用")
 
-if config["word_split/enable_hotwords"]:
+if config.word_split.enable_hotwords:
     jieba.load_userdict("wordcloud_assets/hotwords.txt")  # 将热点词加入词库
     AddRunLog(4, "加载热点词成功")
 else:
     AddRunLog(2, "由于配置文件设置，热点词功能已禁用")
 
-if not path.exists(f"{config['service/data_path']}/user_data"):
-    mkdir(f"{config['service/data_path']}/user_data")
+if not path.exists(f"{config.service.data_path}/user_data"):
+    mkdir(f"{config.service.data_path}/user_data")
 
 
 def GetUserArticleData(user_url: str) -> DataFrame:
@@ -215,9 +215,9 @@ def GetDataJob(user: User):
     user_slug = UserUrlToUserSlug(user.user_url)
 
     if not path.exists(
-        f"{config['service/data_path']}/user_data/{user_slug}"
+        f"{config.service.data_path}/user_data/{user_slug}"
     ):  # 避免获取到中途时服务重启导致文件夹已存在报错
-        mkdir(f"{config['service/data_path']}/user_data/{user_slug}")
+        mkdir(f"{config.service.data_path}/user_data/{user_slug}")
 
     AddRunLog(3, f"开始执行 {user.user_url}（{user.user_name}）的数据获取任务")
 
@@ -230,7 +230,7 @@ def GetDataJob(user: User):
         return  # 终止运行
     else:
         with open(
-            f"{config['service/data_path']}/user_data/{user_slug}/basic_data_{user_slug}.yaml",
+            f"{config.service.data_path}/user_data/{user_slug}/basic_data_{user_slug}.yaml",
             "w",
             encoding="utf-8",
         ) as f:
@@ -246,7 +246,7 @@ def GetDataJob(user: User):
         return  # 终止运行
     else:
         article_data.to_csv(
-            f"{config['service/data_path']}//user_data/{user_slug}/article_data_{user_slug}.csv",
+            f"{config.service.data_path}//user_data/{user_slug}/article_data_{user_slug}.csv",
             index=False,
         )
         AddRunLog(
@@ -264,7 +264,7 @@ def GetDataJob(user: User):
         return  # 终止运行
     else:
         wordcloud_img.to_file(
-            f"{config['service/data_path']}//user_data/{user_slug}/wordcloud_{user_slug}.png"
+            f"{config.service.data_path}//user_data/{user_slug}/wordcloud_{user_slug}.png"
         )
         AddRunLog(4, f"为 {user.user_url}（{user.user_name}）生成词云图成功")
 
@@ -275,11 +275,11 @@ def GetDataJob(user: User):
 
 def main():
     pool = ThreadPoolExecutor(
-        max_workers=config["perf/data_getters_max_count"],
+        max_workers=config.perf.data_getters_max_count,
         thread_name_prefix="data_getter-",
     )
     futures = []
-    AddRunLog(4, f"数据获取线程池创建成功，最大线程数：{config['perf/data_getters_max_count']}")
+    AddRunLog(4, f"数据获取线程池创建成功，最大线程数：{config.perf.data_getters_max_count}")
     while True:
         try:
             for user, future in futures[:]:  # 创建拷贝，防止删除元素导致迭代出错
