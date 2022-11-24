@@ -6,7 +6,7 @@ from yaml import load as yaml_load
 from config_manager import config
 from log_manager import AddViewLog
 
-from .utils import GetLocalStorage, SetFooter
+from .utils import get_localstorage, set_footer
 
 with open("contributors.yaml", "r", encoding="utf-8") as f:
     contributors = yaml_load(f, SafeLoader)
@@ -15,7 +15,7 @@ with open("contributors.yaml", "r", encoding="utf-8") as f:
 def Thanks():
     """鸣谢 ——「风语」"""
 
-    AddViewLog(session_info, GetLocalStorage("user_url"), "鸣谢")
+    AddViewLog(session_info, get_localstorage("user_url"), "鸣谢")
 
     put_markdown(
         """
@@ -57,6 +57,6 @@ def Thanks():
 
     put_markdown("同时，感谢每一位简友对「风语」的支持，让这个产品拥有无限可能。")
 
-    SetFooter(
+    set_footer(
         f"Version：{config.basic_data.version} {config.basic_data.footer_content}"
     )

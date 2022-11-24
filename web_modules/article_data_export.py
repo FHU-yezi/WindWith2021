@@ -28,16 +28,16 @@ from log_manager import AddRunLog, AddViewLog
 from queue_manager import GetUserToExportData
 
 from .utils import (
-    CleanUserUrl,
-    GetLocalStorage,
-    GetUrl,
-    SetFooter,
-    SetLocalStorage,
+    clean_user_url,
+    get_localstorage,
+    get_url,
+    set_footer,
+    set_localstorage,
 )
 
 
 def ExportArticleData(format: str) -> None:
-    user_url = CleanUserUrl(pin.user_url)
+    user_url = clean_user_url(pin.user_url)
     if not user_url:  # 输入框为空
         return
 
@@ -64,7 +64,7 @@ def ExportArticleData(format: str) -> None:
                 onclick=ExportArticleData,
                 disabled=True,
             )  # 禁用提交按钮
-        put_link("点击前往排队页面", url=f"{GetUrl()}?app=JoinQueue")
+        put_link("点击前往排队页面", url=f"{get_url()}?app=JoinQueue")
         AddRunLog(4, f"{user_url}（{user_name}）未排队")
         return
     except UserDataDoesNotReadyException:
@@ -83,7 +83,7 @@ def ExportArticleData(format: str) -> None:
             put_text("如需帮助，请联系开发者。")
         exit()
     else:
-        SetLocalStorage("user_url", user.user_url)  # 将用户链接保存到本地
+        set_localstorage("user_url", user.user_url)  # 将用户链接保存到本地
         AddRunLog(4, f"{user_url}（{user_name}）的数据已就绪")
         user_slug = UserUrlToUserSlug(user.user_url)
 
@@ -141,7 +141,7 @@ def ExportArticleData(format: str) -> None:
 
 def ArticleDataExport():
     """文章数据导出 ——「风语」"""
-    user_url = GetLocalStorage("user_url")
+    user_url = get_localstorage("user_url")
     AddViewLog(session_info, user_url, "文章数据导出")
 
     AddRunLog(4, f"获取到用户本地存储的数据为：{user_url}")
@@ -158,4 +158,4 @@ def ArticleDataExport():
             onclick=lambda: ExportArticleData("csv"),
         )
 
-    SetFooter(config.basic_data.footer_content)
+    set_footer(config.basic_data.footer_content)

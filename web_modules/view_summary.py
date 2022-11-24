@@ -38,11 +38,11 @@ from log_manager import AddRunLog, AddViewLog
 from queue_manager import GetUserToShowSummary
 
 from .utils import (
-    CleanUserUrl,
-    GetLocalStorage,
-    GetUrl,
-    SetFooter,
-    SetLocalStorage,
+    clean_user_url,
+    get_localstorage,
+    get_url,
+    set_footer,
+    set_localstorage,
 )
 
 with open("badge_to_type.yaml", "r", encoding="utf-8") as f:
@@ -397,7 +397,7 @@ def ShowSummary(basic_data: Dict, articles_data: DataFrame, wordcloud_pic_path: 
 
 
 def GetAllData() -> None:
-    user_url = CleanUserUrl(pin.user_url)  # 从输入框中获取 user_url
+    user_url = clean_user_url(pin.user_url)  # 从输入框中获取 user_url
     if not user_url:  # 输入框为空
         return
 
@@ -421,7 +421,7 @@ def GetAllData() -> None:
             put_button(
                 "提交", color="success", onclick=GetAllData, disabled=True
             )  # 禁用提交按钮
-        put_link("点击前往排队页面", url=f"{GetUrl()}?app=JoinQueue")
+        put_link("点击前往排队页面", url=f"{get_url()}?app=JoinQueue")
         AddRunLog(4, f"{user_url}（{user_name}）未排队")
         return
     except UserDataDoesNotReadyException:
@@ -440,7 +440,7 @@ def GetAllData() -> None:
             put_text("如需帮助，请联系开发者。")
         exit()
     else:
-        SetLocalStorage("user_url", user.user_url)  # 将用户链接保存到本地
+        set_localstorage("user_url", user.user_url)  # 将用户链接保存到本地
         AddRunLog(4, f"{user.user_url}（{user.user_name}）的数据已就绪")
         user_slug = UserUrlToUserSlug(user.user_url)
 
@@ -472,7 +472,7 @@ def GetAllData() -> None:
 
 def ViewSummary():
     """我的简书 2021 年终总结 ——「风语」"""
-    user_url = GetLocalStorage("user_url")
+    user_url = get_localstorage("user_url")
     AddViewLog(session_info, user_url, "查看年度总结")
 
     AddRunLog(4, f"获取到用户本地存储的数据为：{user_url}")
@@ -480,4 +480,4 @@ def ViewSummary():
         put_input("user_url", type=TEXT, value=user_url, label="您的简书用户主页链接")
         put_button("提交", color="success", onclick=GetAllData)
 
-    SetFooter(config.basic_data.footer_content)
+    set_footer(config.basic_data.footer_content)
