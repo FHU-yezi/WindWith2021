@@ -5,7 +5,7 @@ volumes:
 
 services:
   main:
-    image: wind-with-2021:1.4.1
+    image: wind-with-2021:1.5.0
     build: .
     ports:
       - "8603:8603"

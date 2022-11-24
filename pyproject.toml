@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "WindWith2021"
-version = "1.4.1"
+version = "1.5.0"
 description = "简书 2021 年终总结"
 authors = ["FHU-yezi <yehaowei20060411@qq.com>"]
 license = "MIT"
