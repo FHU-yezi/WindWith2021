@@ -10,10 +10,10 @@ from web_modules.article_data_export import ArticleDataExport
 from web_modules.join_queue import JoinQueue
 from web_modules.letter_to_jianshuers import LetterToJianshuers
 from web_modules.thanks import Thanks
-from web_modules.utils import GetLocalStorage, GetUrl, SetFooter
+from web_modules.utils import get_localstorage, get_url, set_footer
 from web_modules.view_summary import ViewSummary
 
-AddRunLog(3, f"版本号：{config['basic_data/version']}")
+AddRunLog(3, f"版本号：{config.basic_data.version}")
 
 
 data_getter_init()
@@ -34,7 +34,7 @@ def index():
 
     这是一名技术工作者呈现给社区的年度总结。
     """)
-    AddViewLog(session_info, user_url=GetLocalStorage("user_url"), page_name="主页")
+    AddViewLog(session_info, user_url=get_localstorage("user_url"), page_name="主页")
 
     put_markdown("""
     # 排队
@@ -48,7 +48,7 @@ def index():
     一般情况下，提交排队申请五分钟后即可查看年终总结。
     """)
 
-    put_link("点击前往排队页面", url=f"{GetUrl()}?app=JoinQueue")
+    put_link("点击前往排队页面", url=f"{get_url()}?app=JoinQueue")
 
     put_markdown("""
     # 查看年终总结
@@ -58,7 +58,7 @@ def index():
     如果年终总结尚未生成，请稍等几分钟，可以趁着这段时间，看看下面的那封信。
     """)
 
-    put_link("查看年终总结", url=f"{GetUrl()}?app=ViewSummary")
+    put_link("查看年终总结", url=f"{get_url()}?app=ViewSummary")
 
     put_markdown("""
     # 文章数据导出
@@ -68,7 +68,7 @@ def index():
     数据获取完成之后就可以生成了哦，支持 Excel 和 CSV 格式。
     """)
 
-    put_link("文章数据导出", url=f"{GetUrl()}?app=ArticleDataExport")
+    put_link("文章数据导出", url=f"{get_url()}?app=ArticleDataExport")
 
     put_markdown("""
     # 写给简友们的信
@@ -76,7 +76,7 @@ def index():
     这是「风语」的开发者写给大家的信，里面有开发这个项目的心路历程，和对简书生态的期望。
     """)
 
-    put_link("查看信件", url=f"{GetUrl()}?app=LetterToJianshuers")
+    put_link("查看信件", url=f"{get_url()}?app=LetterToJianshuers")
 
     put_markdown("""
     # 「风语」专题
@@ -91,7 +91,7 @@ def index():
     这是「风语」的开发者写给大家的信，里面有开发这个项目的心路历程，和对简书生态的期望。
     """)
 
-    put_link("查看信件", url=f"{GetUrl()}?app=LetterToJianshuers")
+    put_link("查看信件", url=f"{get_url()}?app=LetterToJianshuers")
 
     put_markdown("""
     # 鸣谢
@@ -99,7 +99,7 @@ def index():
     感谢每个对「风语」做出贡献的内测成员和开发者，感谢每个简友对「风语」的关注。
     """)
 
-    put_link("查看鸣谢页面", url=f"{GetUrl()}?app=Thanks")
+    put_link("查看鸣谢页面", url=f"{get_url()}?app=Thanks")
 
     put_markdown("""
     # 反馈
@@ -111,12 +111,12 @@ def index():
 
     put_link("填写反馈表单", url="https://wenjuan.feishu.cn/m?t=sFAVCWGHdDzi-x0b0", new_window=True)
 
-    SetFooter(f"Version：{config['basic_data/version']} {config['basic_data/footer_content']}")
+    set_footer(f"Version：{config.basic_data.version} {config.basic_data.footer_content}")
 
-    if config["notification/enable"]:
-        AddRunLog(4, f"展示了公告信息，标题：{config['notification/title']}")
-        popup(title=config["notification/title"], content=config["notification/content"],
-              size="large", closable=config["notification/closable"])
+    if config.notification.enable:
+        AddRunLog(4, f"展示了公告信息，标题：{config.notification.title}")
+        popup(title=config.notification.title, content=config.notification.content,
+              size="large", closable=config.notification.closable)
 
 
 SERVICES = [
@@ -129,4 +129,4 @@ SERVICES = [
 ]
 
 AddRunLog(3, "启动服务......")
-start_server(SERVICES, port=config["service/port"])
+start_server(SERVICES, port=config.service.port)

@@ -6,16 +6,23 @@ from yaml import load as yaml_load
 
 from config_manager import config
 from db_config import User
-from exceptions import (QueueEmptyException, QueueFullException,
-                        UserAlreadyExistsException, UserBannedException,
-                        UserDataDoesNotReadyException, UserDataException,
-                        UserDoesNotExistException)
+from exceptions import (
+    QueueEmptyException,
+    QueueFullException,
+    UserAlreadyExistsException,
+    UserBannedException,
+    UserDataDoesNotReadyException,
+    UserDataException,
+    UserDoesNotExistException,
+)
 from log_manager import AddRunLog
 
 MAX_QUEUE_LENGTH = 100
 
 # 将上一次未处理完的用户状态改为 1，即未处理
-changed_lines = User.update(status=1, start_process_time=None).where(User.status == 2).execute()
+changed_lines = (
+    User.update(status=1, start_process_time=None).where(User.status == 2).execute()
+)
 if changed_lines:
     AddRunLog(2, f"有 {changed_lines} 个用户的数据未处理完，已重置其状态")
 else:
@@ -28,15 +35,20 @@ queue_length = User.select().where(User.status == 1).count()  # 获取排队中�
 
 def AddToQueue(user_url: str, user_name: str) -> None:
     global queue_length
-    if user_url in banned_list and config["auth/enable_banlist"]:
+    if user_url in banned_list and config.auth.enable_banlist:
         raise UserBannedException(f"{user_url}已被封禁")
-    elif not config["auth/enable_banlist"]:
+    elif not config.auth.enable_banlist:
         AddRunLog(2, f"用户 {user_url}（{user_name}）在封禁列表中，但由于配置文件设置，未对此用户进行拦截")
     if queue_length + 1 > MAX_QUEUE_LENGTH:  # 如果队列已满
         raise QueueFullException("队列已满，请稍后再试")
     try:
-        User.create(user_url=user_url, user_name=user_name,
-                    status=1, data_exported=False, add_time=datetime.now())
+        User.create(
+            user_url=user_url,
+            user_name=user_name,
+            status=1,
+            data_exported=False,
+            add_time=datetime.now(),
+        )
     except DatabaseError:  # 主键是 user_url，出错意味着用户已存在
         raise UserAlreadyExistsException(f"用户 {user_url} 已存在")
     else:

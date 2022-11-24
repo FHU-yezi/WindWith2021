@@ -1,30 +1,49 @@
 from datetime import datetime
 from typing import Dict
 
-from config_manager import config
-from exceptions import (UserDataDoesNotReadyException, UserDataException,
-                        UserDoesNotExistException)
 from JianshuResearchTools.convert import UserUrlToUserSlug
-from pyecharts import options as opts
-from pyecharts.charts import Line
 from JianshuResearchTools.exceptions import InputError, ResourceError
 from JianshuResearchTools.objects import User
-from log_manager import AddRunLog, AddViewLog
 from pandas import DataFrame, read_csv
 from pandas import to_datetime as pd_to_datetime
 from PIL.Image import open as OpenImage
+from pyecharts import options as opts
+from pyecharts.charts import Line
 from pywebio.input import TEXT
-from pywebio.output import (clear, put_button, put_buttons, put_image,
-                            put_link, put_loading, put_table, put_text, toast,
-                            use_scope, put_html)
+from pywebio.output import (
+    clear,
+    put_button,
+    put_buttons,
+    put_html,
+    put_image,
+    put_link,
+    put_loading,
+    put_table,
+    put_text,
+    toast,
+    use_scope,
+)
 from pywebio.pin import pin, put_input
 from pywebio.session import info as session_info
-from queue_manager import GetUserToShowSummary
 from yaml import SafeLoader
 from yaml import load as yaml_load
 
-from .utils import (CleanUserUrl, GetLocalStorage, GetUrl, SetFooter,
-                    SetLocalStorage)
+from config_manager import config
+from exceptions import (
+    UserDataDoesNotReadyException,
+    UserDataException,
+    UserDoesNotExistException,
+)
+from log_manager import AddRunLog, AddViewLog
+from queue_manager import GetUserToShowSummary
+
+from .utils import (
+    clean_user_url,
+    get_localstorage,
+    get_url,
+    set_footer,
+    set_localstorage,
+)
 
 with open("badge_to_type.yaml", "r", encoding="utf-8") as f:
     BADGE_TO_TYPE = yaml_load(f, SafeLoader)  # 初始化徽章类型表
@@ -45,10 +64,14 @@ def ShowSummary(basic_data: Dict, articles_data: DataFrame, wordcloud_pic_path: 
     yield None
 
     with use_scope("output"):
-        put_text(f"时至今日，你已经在简书写下了 {basic_data['articles_count']} 篇文章，"
-                 f"一共 {round(basic_data['wordage'] / 10000, 1)} 万字。")
+        put_text(
+            f"时至今日，你已经在简书写下了 {basic_data['articles_count']} 篇文章，"
+            f"一共 {round(basic_data['wordage'] / 10000, 1)} 万字。"
+        )
         if basic_data["articles_count"] != 0:
-            put_text(f"平均每篇文章有 {round(basic_data['wordage'] / basic_data['articles_count'], 2)} 字。")
+            put_text(
+                f"平均每篇文章有 {round(basic_data['wordage'] / basic_data['articles_count'], 2)} 字。"
+            )
 
         if basic_data["wordage"] == 0:
             put_text("不妨去写写自己的所思所想？")
@@ -64,7 +87,9 @@ def ShowSummary(basic_data: Dict, articles_data: DataFrame, wordcloud_pic_path: 
             put_text("已经是社区中数一数二的存在了哦，让高质量的内容成为你的代名词吧。")
         put_text("\n")
 
-        put_text(f"这些文字吸引了 {basic_data['fans_count']} 个粉丝，和 {basic_data['likes_count']} 次点赞。")
+        put_text(
+            f"这些文字吸引了 {basic_data['fans_count']} 个粉丝，和 {basic_data['likes_count']} 次点赞。"
+        )
         if basic_data["likes_count"] == 0:
             put_text("点赞？拿来吧你！")
         elif 0 < basic_data["likes_count"] < 100:
@@ -84,7 +109,10 @@ def ShowSummary(basic_data: Dict, articles_data: DataFrame, wordcloud_pic_path: 
     yield None
 
     with use_scope("output"):
-        put_text(f"你拥有 {basic_data['assets_count']} 资产，包含 {basic_data['FP_count']} 简书钻，和 {basic_data['FTN_count']} 简书贝。")
+        put_text(
+            f"你拥有 {basic_data['assets_count']} 资产，"
+            f"包含 {basic_data['FP_count']} 简书钻，和 {basic_data['FTN_count']} 简书贝。"
+        )
         if basic_data["assets_count"] < 5:
             put_text("难道你还不知道这都是些什么东西？去搜索一下吧！")
         elif 5 < basic_data["assets_count"] < 100:
@@ -126,8 +154,14 @@ def ShowSummary(basic_data: Dict, articles_data: DataFrame, wordcloud_pic_path: 
     yield None
 
     with use_scope("output"):
-        put_text(f"今年，你写下了 {articles_data['aslug'].count()} 篇文章，{round(articles_data['wordage'].sum() / 10000, 1)} 万字。")
-        put_text(f"这一年，你写的文章，占总文章数的 {round(articles_data['aslug'].count() / basic_data['articles_count'] * 100, 2)}%。")
+        put_text(
+            f"今年，你写下了 {articles_data['aslug'].count()} 篇文章，"
+            f"{round(articles_data['wordage'].sum() / 10000, 1)} 万字。"
+        )
+        put_text(
+            f"这一年，你写的文章，占总文章数的 "
+            f"{round(articles_data['aslug'].count() / basic_data['articles_count'] * 100, 2)}%。"
+        )
 
         if articles_data["aslug"].count() < 5:
             put_text("期待在新的一年中看到你的更多文章！")
@@ -141,7 +175,10 @@ def ShowSummary(basic_data: Dict, articles_data: DataFrame, wordcloud_pic_path: 
             put_text("每天在简书更新文章，已经成为了你的习惯！")
         put_text("\n")
 
-        put_text(f"你在 2021 年获得了 {articles_data['likes_count'].sum()} 个点赞，占总收获的 {round(articles_data['likes_count'].sum() / basic_data['likes_count'] * 100, 2)}%。")
+        put_text(
+            f"你在 2021 年获得了 {articles_data['likes_count'].sum()} 个点赞，"
+            f"占总收获的 {round(articles_data['likes_count'].sum() / basic_data['likes_count'] * 100, 2)}%。"
+        )
 
         if articles_data["likes_count"].sum() < 10:
             put_text("经常和简友互动，可以提高你在社区的影响力哦。")
@@ -157,15 +194,23 @@ def ShowSummary(basic_data: Dict, articles_data: DataFrame, wordcloud_pic_path: 
             put_text("你得到了简友们的广泛认可，一呼百应用来形容你再适合不过了。")
         put_text("\n")
 
-        put_text(f"你在 2021 年的最后一次创作在 {datetime.fromisoformat(list(articles_data[articles_data['is_top'] == False]['release_time'])[0]).replace(tzinfo=None).strftime(r'%Y 年 %m 月 %d 日')}，写的是年终总结吗？")
+        put_text(
+            f"你在 2021 年的最后一次创作在 "
+            f"{datetime.fromisoformat(list(articles_data[articles_data['is_top'] == False]['release_time'])[0]).replace(tzinfo=None).strftime(r'%Y 年 %m 月 %d 日')}，"
+            f"写的是年终总结吗？"
+        )
         put_text("\n")
 
     yield None
 
     with use_scope("output"):
-        articles_data["month"] = articles_data["release_time"].apply(lambda x: datetime.fromisoformat(x).month)
-        put_text(f"你哪个月发布的文章最多呢？是 {articles_data['month'].value_counts().index[0]} 月，"
-                 f"这个月你发布了 {articles_data['month'].value_counts().values[0]} 篇文章。")
+        articles_data["month"] = articles_data["release_time"].apply(
+            lambda x: datetime.fromisoformat(x).month
+        )
+        put_text(
+            f"你哪个月发布的文章最多呢？是 {articles_data['month'].value_counts().index[0]} 月，"
+            f"这个月你发布了 {articles_data['month'].value_counts().values[0]} 篇文章。"
+        )
         put_text("来看看你的发文趋势图吧：")
 
         with put_loading():
@@ -208,9 +253,15 @@ def ShowSummary(basic_data: Dict, articles_data: DataFrame, wordcloud_pic_path: 
             figure = (
                 Line()
                 .add_xaxis([f"{x} 月" for x in datas["获赞量"].keys()])
-                .add_yaxis("获赞量", [str(x) for x in datas["获赞量"].values()], is_smooth=True)
-                .add_yaxis("评论量", [str(x) for x in datas["评论量"].values()], is_smooth=True)
-                .add_yaxis("打赏量", [str(x) for x in datas["打赏量"].values()], is_smooth=True)
+                .add_yaxis(
+                    "获赞量", [str(x) for x in datas["获赞量"].values()], is_smooth=True
+                )
+                .add_yaxis(
+                    "评论量", [str(x) for x in datas["评论量"].values()], is_smooth=True
+                )
+                .add_yaxis(
+                    "打赏量", [str(x) for x in datas["打赏量"].values()], is_smooth=True
+                )
                 .set_global_opts(
                     title_opts=opts.TitleOpts(title="互动量趋势"),
                     xaxis_opts=opts.AxisOpts(name="月份"),
@@ -226,12 +277,23 @@ def ShowSummary(basic_data: Dict, articles_data: DataFrame, wordcloud_pic_path: 
 
         article_data_copy = articles_data.__copy__()  # 复制一份数据留待后续操作
         # 对日期数据进行预处理
-        article_data_copy["release_time"] = article_data_copy["release_time"].apply(lambda x: f"{datetime.fromisoformat(x).hour}:00:00")
-        article_data_copy["release_time"] = pd_to_datetime(article_data_copy["release_time"], format="%H:%M:%S")
+        article_data_copy["release_time"] = article_data_copy["release_time"].apply(
+            lambda x: f"{datetime.fromisoformat(x).hour}:00:00"
+        )
+        article_data_copy["release_time"] = pd_to_datetime(
+            article_data_copy["release_time"], format="%H:%M:%S"
+        )
         article_data_copy.set_index("release_time", inplace=True)  # 将发布时间设为索引
         # 构建发文时间数据，缺失值用 0 填充
         data = dict(zip(range(1, 24), [0] * 24))
-        data.update({key.hour: value for key, value in dict(article_data_copy.resample("H").count()["aid"]).items()})
+        data.update(
+            {
+                key.hour: value
+                for key, value in dict(
+                    article_data_copy.resample("H").count()["aid"]
+                ).items()
+            }
+        )
         # 对数据进行排序
         data = dict(sorted(data.items(), key=lambda x: x[0]))
         figure = (
@@ -241,7 +303,7 @@ def ShowSummary(basic_data: Dict, articles_data: DataFrame, wordcloud_pic_path: 
             .set_global_opts(
                 title_opts=opts.TitleOpts(title="发文时间分布"),
                 xaxis_opts=opts.AxisOpts(name="时间"),
-                yaxis_opts=opts.AxisOpts(name="发文数量")
+                yaxis_opts=opts.AxisOpts(name="发文数量"),
             )
         )
         put_html(figure.render_notebook())
@@ -249,7 +311,7 @@ def ShowSummary(basic_data: Dict, articles_data: DataFrame, wordcloud_pic_path: 
     yield None
 
     with use_scope("output"):
-        if basic_data['vip_type']:
+        if basic_data["vip_type"]:
             put_text(f"不知是什么原因，让你开通了{basic_data['vip_type']}会员呢？")
             put_text(f"你的会员将在 {basic_data['vip_expire_time']} 到期，要不要续费呢？")
         else:
@@ -260,9 +322,12 @@ def ShowSummary(basic_data: Dict, articles_data: DataFrame, wordcloud_pic_path: 
     yield None
 
     with use_scope("output"):
-        if basic_data['badges_list']:
+        if basic_data["badges_list"]:
             put_text(f"你拥有 {len(basic_data['badges_list'])} 枚徽章：")
-            put_table([[x, BADGE_TO_TYPE.get(x, "未知")] for x in basic_data["badges_list"]], ["徽章名称", "分类"])
+            put_table(
+                [[x, BADGE_TO_TYPE.get(x, "未知")] for x in basic_data["badges_list"]],
+                ["徽章名称", "分类"],
+            )
         else:
             put_text("什么？你还没有徽章？为何不多写点文章申请简书创作者，或者去做岛主？")
             put_text("搞点东西装饰一下你的个人主页，何乐而不为呢？")
@@ -271,7 +336,9 @@ def ShowSummary(basic_data: Dict, articles_data: DataFrame, wordcloud_pic_path: 
     yield None
 
     with use_scope("output"):
-        put_text(f"知道 {basic_data['next_anniversary_day'].strftime(r'%Y 年 %m 月 %d 日')}是什么日子吗？")
+        put_text(
+            f"知道 {basic_data['next_anniversary_day'].strftime(r'%Y 年 %m 月 %d 日')}是什么日子吗？"
+        )
         put_text("是你来简书的周年纪念日哦！到时候要不要发篇文章说说自己的感想？")
         put_text("\n")
 
@@ -330,7 +397,7 @@ def ShowSummary(basic_data: Dict, articles_data: DataFrame, wordcloud_pic_path: 
 
 
 def GetAllData() -> None:
-    user_url = CleanUserUrl(pin.user_url)  # 从输入框中获取 user_url
+    user_url = clean_user_url(pin.user_url)  # 从输入框中获取 user_url
     if not user_url:  # 输入框为空
         return
 
@@ -351,8 +418,10 @@ def GetAllData() -> None:
         toast("您未加入队列，请先排队", color="warn")
         with use_scope("data_input", clear=True):
             put_input("user_url", type=TEXT, label="您的简书用户主页链接")
-            put_button("提交", color="success", onclick=GetAllData, disabled=True)  # 禁用提交按钮
-        put_link("点击前往排队页面", url=f"{GetUrl()}?app=JoinQueue")
+            put_button(
+                "提交", color="success", onclick=GetAllData, disabled=True
+            )  # 禁用提交按钮
+        put_link("点击前往排队页面", url=f"{get_url()}?app=JoinQueue")
         AddRunLog(4, f"{user_url}（{user_name}）未排队")
         return
     except UserDataDoesNotReadyException:
@@ -364,20 +433,20 @@ def GetAllData() -> None:
         AddRunLog(4, f"{user_url}（{user_name}）的数据未就绪")
         return
     except UserDataException as e:
-        AddRunLog(2, f'用户 {user_url}（{user_name}）获取年终总结失败，因为他的数据存在异常：{e}')
-        clear('data_input')
-        with use_scope('output'):
-            put_text(f'抱歉，我们无法为您生成年终总结，因为您的数据存在以下异常：{e}。')
-            put_text('如需帮助，请联系开发者。')
+        AddRunLog(2, f"用户 {user_url}（{user_name}）获取年终总结失败，因为他的数据存在异常：{e}")
+        clear("data_input")
+        with use_scope("output"):
+            put_text(f"抱歉，我们无法为您生成年终总结，因为您的数据存在以下异常：{e}。")
+            put_text("如需帮助，请联系开发者。")
         exit()
     else:
-        SetLocalStorage("user_url", user.user_url)  # 将用户链接保存到本地
+        set_localstorage("user_url", user.user_url)  # 将用户链接保存到本地
         AddRunLog(4, f"{user.user_url}（{user.user_name}）的数据已就绪")
         user_slug = UserUrlToUserSlug(user.user_url)
 
-        basic_data_path = f"{config['service/data_path']}/user_data/{user_slug}/basic_data_{user_slug}.yaml"
-        articles_data_path = f"{config['service/data_path']}/user_data/{user_slug}/article_data_{user_slug}.csv"
-        wordcloud_pic_path = f"{config['service/data_path']}/user_data/{user_slug}/wordcloud_{user_slug}.png"
+        basic_data_path = f"{config.service.data_path}/user_data/{user_slug}/basic_data_{user_slug}.yaml"
+        articles_data_path = f"{config.service.data_path}/user_data/{user_slug}/article_data_{user_slug}.csv"
+        wordcloud_pic_path = f"{config.service.data_path}/user_data/{user_slug}/wordcloud_{user_slug}.png"
 
         with open(basic_data_path, "r", encoding="utf-8") as f:
             basic_data = yaml_load(f, SafeLoader)
@@ -393,14 +462,17 @@ def GetAllData() -> None:
 
         show_summary_obj = ShowSummary(basic_data, articles_data, wordcloud_pic_path)
         with use_scope("continue_button_area"):
-            put_buttons([dict(label="继续", value="continue", color="dark")],
-                        outline=True, onclick=lambda _: next(show_summary_obj), serial_mode=True)
+            put_buttons(
+                [dict(label="继续", value="continue", color="dark")],
+                outline=True,
+                onclick=lambda _: next(show_summary_obj),
+                serial_mode=True,
+            )
 
 
 def ViewSummary():
-    """我的简书 2021 年终总结 ——「风语」
-    """
-    user_url = GetLocalStorage("user_url")
+    """我的简书 2021 年终总结 ——「风语」"""
+    user_url = get_localstorage("user_url")
     AddViewLog(session_info, user_url, "查看年度总结")
 
     AddRunLog(4, f"获取到用户本地存储的数据为：{user_url}")
@@ -408,4 +480,4 @@ def ViewSummary():
         put_input("user_url", type=TEXT, value=user_url, label="您的简书用户主页链接")
         put_button("提交", color="success", onclick=GetAllData)
 
-    SetFooter(config["basic_data/footer_content"])
+    set_footer(config.basic_data.footer_content)
